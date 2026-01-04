@@ -8,9 +8,10 @@ A cross-platform desktop application built with Tauri and Rust for fast, private
 - 🔐 **Private & Offline**: All indexing and searching happens locally on your machine
 - 📁 **Recursive Scanning**: Automatically scans folders and subfolders for PDFs
 - 🎯 **Advanced Filtering**: Filter by file size, modification date, and more
-- 🔤 **Boolean Operators**: Support for AND, OR, NOT operators in search queries
+- 🔤 **Boolean Operators**: Case-insensitive AND, OR, NOT operators for custom queries
 - 📊 **Metadata Extraction**: Displays file size, modification date, and page count
-- ⚡ **Fast Performance**: Lightweight with minimal resource usage using SQLite FTS5
+- ⚡ **Real-Time Results**: Searches update as you type for instant feedback
+- 🗄️ **Local Indexing**: Lightweight SQLite FTS5 (Lucene-style) index with minimal resource usage
 - 🖥️ **Cross-Platform**: Works on Windows, macOS, and Linux
 
 ## Technology Stack
