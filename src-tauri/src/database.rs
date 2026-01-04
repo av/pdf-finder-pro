@@ -67,10 +67,17 @@ impl Database {
                 size INTEGER NOT NULL,
                 modified INTEGER NOT NULL,
                 pages INTEGER,
-                folder_path TEXT NOT NULL
+                folder_path TEXT DEFAULT ''
             )",
             [],
         )?;
+        
+        // Try to add folder_path column if it doesn't exist (migration for existing databases)
+        // This will fail silently if the column already exists
+        let _ = conn.execute(
+            "ALTER TABLE pdfs ADD COLUMN folder_path TEXT DEFAULT ''",
+            [],
+        );
         
         // Create FTS5 virtual table for full-text search
         conn.execute(
