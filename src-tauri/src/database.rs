@@ -32,6 +32,13 @@ pub struct SearchFilters {
     pub date_to: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IndexedFolder {
+    pub path: String,
+    pub last_indexed: i64,
+    pub pdf_count: i64,
+}
+
 #[derive(Clone)]
 pub struct Database {
     conn: Arc<Mutex<Connection>>,
@@ -40,6 +47,15 @@ pub struct Database {
 impl Database {
     pub fn new(db_path: PathBuf) -> anyhow::Result<Self> {
         let conn = Connection::open(db_path)?;
+        
+        // Create folders table to track indexed folders
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS indexed_folders (
+                path TEXT PRIMARY KEY NOT NULL,
+                last_indexed INTEGER NOT NULL
+            )",
+            [],
+        )?;
         
         // Create tables with FTS5 for full-text search
         conn.execute(
@@ -50,7 +66,8 @@ impl Database {
                 content TEXT NOT NULL,
                 size INTEGER NOT NULL,
                 modified INTEGER NOT NULL,
-                pages INTEGER
+                pages INTEGER,
+                folder_path TEXT NOT NULL
             )",
             [],
         )?;
@@ -97,19 +114,20 @@ impl Database {
         })
     }
     
-    pub fn insert_pdf(&self, doc: &PdfDocument) -> anyhow::Result<()> {
+    pub fn insert_pdf(&self, doc: &PdfDocument, folder_path: &str) -> anyhow::Result<()> {
         let conn = self.conn.lock().unwrap();
         
         conn.execute(
-            "INSERT OR REPLACE INTO pdfs (path, title, content, size, modified, pages)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            "INSERT OR REPLACE INTO pdfs (path, title, content, size, modified, pages, folder_path)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             params![
                 &doc.path,
                 &doc.title,
                 &doc.content,
                 doc.size,
                 doc.modified,
-                doc.pages
+                doc.pages,
+                folder_path
             ],
         )?;
         
@@ -189,6 +207,59 @@ impl Database {
         let conn = self.conn.lock().unwrap();
         let count: i64 = conn.query_row("SELECT COUNT(*) FROM pdfs", [], |row| row.get(0))?;
         Ok(count)
+    }
+    
+    pub fn add_indexed_folder(&self, folder_path: &str) -> anyhow::Result<()> {
+        let conn = self.conn.lock().unwrap();
+        let timestamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_secs() as i64;
+        
+        conn.execute(
+            "INSERT OR REPLACE INTO indexed_folders (path, last_indexed) VALUES (?1, ?2)",
+            params![folder_path, timestamp],
+        )?;
+        Ok(())
+    }
+    
+    pub fn get_indexed_folders(&self) -> anyhow::Result<Vec<IndexedFolder>> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare(
+            "SELECT f.path, f.last_indexed, COUNT(p.id) as pdf_count
+             FROM indexed_folders f
+             LEFT JOIN pdfs p ON p.folder_path = f.path
+             GROUP BY f.path
+             ORDER BY f.last_indexed DESC"
+        )?;
+        
+        let folders = stmt.query_map([], |row| {
+            Ok(IndexedFolder {
+                path: row.get(0)?,
+                last_indexed: row.get(1)?,
+                pdf_count: row.get(2)?,
+            })
+        })?;
+        
+        let mut result = Vec::new();
+        for folder in folders {
+            if let Ok(f) = folder {
+                result.push(f);
+            }
+        }
+        Ok(result)
+    }
+    
+    pub fn remove_indexed_folder(&self, folder_path: &str) -> anyhow::Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute("DELETE FROM pdfs WHERE folder_path = ?1", params![folder_path])?;
+        conn.execute("DELETE FROM indexed_folders WHERE path = ?1", params![folder_path])?;
+        Ok(())
+    }
+    
+    pub fn remove_pdfs_for_folder(&self, folder_path: &str) -> anyhow::Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute("DELETE FROM pdfs WHERE folder_path = ?1", params![folder_path])?;
+        Ok(())
     }
 }
 
