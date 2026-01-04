@@ -94,29 +94,37 @@ pdf-finder-pro/
 
 #### `pdfs` table (metadata storage)
 ```sql
-- id: INTEGER PRIMARY KEY
-- path: TEXT UNIQUE
-- title: TEXT
-- content: TEXT (full extracted text)
-- size: INTEGER (bytes)
-- modified: INTEGER (Unix timestamp)
-- pages: INTEGER (estimated page count)
+CREATE TABLE pdfs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    path TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,         -- full extracted text
+    size INTEGER NOT NULL,          -- bytes
+    modified INTEGER NOT NULL,      -- Unix timestamp
+    pages INTEGER,                  -- estimated page count
+    folder_path TEXT DEFAULT ''
+)
 ```
 
 #### `pdfs_fts` virtual table (FTS5 index)
 ```sql
-- path: UNINDEXED
-- title: indexed
-- content: indexed
+CREATE VIRTUAL TABLE pdfs_fts USING fts5(
+    path UNINDEXED,
+    title,
+    content,
+    content=pdfs,
+    content_rowid=id
+)
 ```
 
-Automatically synced via SQLite triggers when pdfs table changes.
+Automatically synced via SQLite triggers when pdfs table changes (INSERT, UPDATE, DELETE).
 
 #### `indexed_folders` table
 ```sql
-- path: TEXT PRIMARY KEY
-- last_indexed: INTEGER (Unix timestamp)
-- pdf_count: INTEGER
+CREATE TABLE indexed_folders (
+    path TEXT PRIMARY KEY NOT NULL,
+    last_indexed INTEGER NOT NULL   -- Unix timestamp
+)
 ```
 
 ---
@@ -382,7 +390,7 @@ When modifying this codebase:
 
 ## Contact & Resources
 
-- **Repository**: github.com/av/pdf-finder-pro
+- **Repository**: https://github.com/av/pdf-finder-pro
 - **Tauri Docs**: tauri.app
 - **SQLite FTS5 Docs**: sqlite.org/fts5.html
 - **pdf-extract Crate**: docs.rs/pdf-extract
