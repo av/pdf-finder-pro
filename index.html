@@ -9,7 +9,7 @@
   <body>
     <div class="container">
       <header>
-        <h1>🔍 PDF Finder Pro</h1>
+        <h1><i data-lucide="search" class="header-icon"></i> PDF Finder Pro</h1>
         <p class="subtitle">Fast, private full-text PDF search</p>
       </header>
 
@@ -17,7 +17,7 @@
         <!-- Getting Started Guide -->
         <div class="guide-section" id="guide-section">
           <div class="guide-header">
-            <h2>📚 Getting Started</h2>
+            <h2><i data-lucide="book-open" class="section-icon"></i> Getting Started</h2>
             <button id="toggle-guide" class="btn btn-text">Hide</button>
           </div>
           <div class="guide-content" id="guide-content">
@@ -34,8 +34,8 @@
         <!-- Indexed Folders Management -->
         <div class="folders-section">
           <div class="section-header">
-            <h2>📁 Indexed Folders</h2>
-            <button id="add-folder" class="btn btn-primary">+ Add Folder</button>
+            <h2><i data-lucide="folder" class="section-icon"></i> Indexed Folders</h2>
+            <button id="add-folder" class="btn btn-primary"><i data-lucide="plus" class="btn-icon"></i> Add Folder</button>
           </div>
           
           <div id="folders-list" class="folders-list">
@@ -46,7 +46,7 @@
         </div>
 
         <div class="search-section">
-          <h2>🔍 Search PDFs</h2>
+          <h2><i data-lucide="search" class="section-icon"></i> Search PDFs</h2>
           <div class="search-box">
             <input 
               type="text" 
@@ -59,7 +59,7 @@
 
           <div class="filters-toggle">
             <button id="toggle-filters" class="btn btn-text">
-              <span id="filter-icon">▼</span> Advanced Filters
+              <i data-lucide="chevron-down" id="filter-icon" class="filter-toggle-icon"></i> Advanced Filters
             </button>
           </div>
 
