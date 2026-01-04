@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Finder Pro</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🔍 PDF Finder Pro</h1>
+        <p class="subtitle">Fast, private full-text PDF search</p>
+      </header>
+
+      <main>
+        <div class="controls">
+          <div class="folder-selection">
+            <button id="select-folder" class="btn btn-primary">Select Folder to Index</button>
+            <span id="selected-folder" class="folder-path"></span>
+          </div>
+          
+          <div class="index-controls">
+            <button id="index-pdfs" class="btn btn-secondary" disabled>Index PDFs</button>
+            <span id="index-status" class="status"></span>
+          </div>
+        </div>
+
+        <div class="search-section">
+          <h2>Search PDFs</h2>
+          <div class="search-box">
+            <input 
+              type="text" 
+              id="search-input" 
+              placeholder="Enter search query (supports AND, OR, NOT operators)"
+              autocomplete="off"
+            />
+            <button id="search-btn" class="btn btn-primary">Search</button>
+          </div>
+
+          <div class="filters">
+            <div class="filter-group">
+              <label for="min-size">Min Size (KB):</label>
+              <input type="number" id="min-size" min="0" placeholder="0" />
+            </div>
+            <div class="filter-group">
+              <label for="max-size">Max Size (KB):</label>
+              <input type="number" id="max-size" min="0" placeholder="No limit" />
+            </div>
+            <div class="filter-group">
+              <label for="date-from">Modified From:</label>
+              <input type="date" id="date-from" />
+            </div>
+            <div class="filter-group">
+              <label for="date-to">Modified To:</label>
+              <input type="date" id="date-to" />
+            </div>
+            <button id="clear-filters" class="btn btn-text">Clear Filters</button>
+          </div>
+        </div>
+
+        <div class="results-section">
+          <div class="results-header">
+            <h3>Results</h3>
+            <span id="results-count" class="count"></span>
+          </div>
+          <div id="results-container" class="results-list"></div>
+        </div>
+      </main>
+    </div>
+    
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
