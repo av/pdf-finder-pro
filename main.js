@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
-import { createIcons, Search, BookOpen, Folder, FileText, Clock, RefreshCw, Trash2, Loader2, CheckCircle2, XCircle, Calendar, ChevronDown, ChevronRight, ChevronUp, Plus } from 'lucide';
+import { createIcons, icons } from 'lucide';
 
 let searchTimeout;
 let currentResults = [];
@@ -47,7 +47,7 @@ toggleFiltersBtn.addEventListener('click', () => {
     filtersPanel.style.display = 'none';
     filterIcon.setAttribute('data-lucide', 'chevron-down');
   }
-  createIcons();
+  createIcons({ icons });
 });
 
 // Add folder for indexing
@@ -76,7 +76,7 @@ async function indexFolder(folderPath) {
   loadingMsg.innerHTML = '<p><i data-lucide="loader-2" class="loading-icon"></i> Indexing PDFs...</p>';
   foldersList.innerHTML = '';
   foldersList.appendChild(loadingMsg);
-  createIcons();
+  createIcons({ icons });
 
   try {
     const result = await invoke('index_pdfs', { folderPath });
@@ -86,7 +86,7 @@ async function indexFolder(folderPath) {
     successMsg.style.cssText = 'padding: 1rem; background: #d1fae5; color: #065f46; border-radius: 6px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;';
     successMsg.innerHTML = `<i data-lucide="check-circle-2" style="width: 20px; height: 20px;"></i> Indexed ${result.count} PDFs in ${result.duration}ms`;
     foldersList.insertBefore(successMsg, foldersList.firstChild);
-    createIcons();
+    createIcons({ icons });
     
     setTimeout(() => successMsg.remove(), 3000);
   } catch (error) {
@@ -124,7 +124,7 @@ async function loadIndexedFolders() {
         </div>
       </div>
     `).join('');
-    createIcons();
+    createIcons({ icons });
   } catch (error) {
     console.error('Error loading folders:', error);
     foldersList.innerHTML = '<div class="empty-state"><p>Error loading folders</p></div>';
@@ -264,7 +264,7 @@ function displayResults(results) {
       </div>
     `;
   }).join('');
-  createIcons();
+  createIcons({ icons });
 }
 
 // Group results by parent folder
@@ -304,7 +304,7 @@ window.__toggleFolderGroup = (folderId) => {
     resultsDiv.classList.add('collapsed');
     toggleIcon.setAttribute('data-lucide', 'chevron-right');
   }
-  createIcons();
+  createIcons({ icons });
 };
 
 // Render a single result item
@@ -337,12 +337,13 @@ window.__openPdf = async (path) => {
 function showEmptyState(message) {
   resultsContainer.innerHTML = `<div class="empty-state"><p>${escapeHtml(message)}</p></div>`;
   resultsCount.textContent = '';
+  createIcons({ icons });
 }
 
 function showError(message) {
   resultsContainer.innerHTML = `<div class="empty-state" style="color: #ef4444;"><p><i data-lucide="x-circle" class="error-icon"></i> ${escapeHtml(message)}</p></div>`;
   resultsCount.textContent = '';
-  createIcons();
+  createIcons({ icons });
 }
 
 function escapeHtml(text) {
@@ -418,7 +419,7 @@ async function init() {
   }
   
   // Initialize Lucide icons
-  createIcons();
+  createIcons({ icons });
 }
 
 init();
