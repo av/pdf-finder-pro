@@ -3,6 +3,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 
 let selectedFolder = '';
 let isIndexing = false;
+let searchTimeout;
 
 // DOM Elements
 const selectFolderBtn = document.getElementById('select-folder');
@@ -95,6 +96,11 @@ searchInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     performSearch();
   }
+});
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => performSearch(), 250);
 });
 
 // Clear filters

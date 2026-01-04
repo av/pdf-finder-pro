@@ -108,27 +108,27 @@ fn get_db_path() -> anyhow::Result<PathBuf> {
 }
 
 fn transform_query(query: &str) -> String {
-    // Transform user query to FTS5 format
-    // Support boolean operators: AND, OR, NOT
-    let mut fts_query = query.to_string();
+    let tokens: Vec<String> = query
+        .split_whitespace()
+        .map(|token| {
+            let upper = token.to_uppercase();
+            if upper == "AND" || upper == "OR" || upper == "NOT" {
+                upper
+            } else {
+                token.to_string()
+            }
+        })
+        .collect();
     
-    // Replace common patterns with FTS5 equivalents
-    fts_query = fts_query.replace(" AND ", " AND ");
-    fts_query = fts_query.replace(" OR ", " OR ");
-    fts_query = fts_query.replace(" NOT ", " NOT ");
+    let has_boolean_operator = tokens.iter().any(|t| t == "AND" || t == "OR" || t == "NOT");
     
-    // If no operators, treat as phrase or individual terms
-    if !fts_query.contains(" AND ") 
-        && !fts_query.contains(" OR ") 
-        && !fts_query.contains(" NOT ") {
-        // Split into words and OR them together for better matching
-        let words: Vec<&str> = fts_query.split_whitespace().collect();
-        if words.len() > 1 {
-            fts_query = words.join(" OR ");
-        }
+    if has_boolean_operator {
+        tokens.join(" ")
+    } else if tokens.len() > 1 {
+        tokens.join(" OR ")
+    } else {
+        tokens.join(" ")
     }
-    
-    fts_query
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
