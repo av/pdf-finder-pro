@@ -12,10 +12,10 @@ impl PdfIndexer {
     pub fn new(db: Database) -> Self {
         PdfIndexer { db }
     }
-    
+
     pub fn index_folder(&self, folder_path: &str) -> Result<usize> {
         let mut count = 0;
-        
+
         // Walk through directory recursively
         for entry in WalkDir::new(folder_path)
             .follow_links(true)
@@ -23,7 +23,7 @@ impl PdfIndexer {
             .filter_map(|e| e.ok())
         {
             let path = entry.path();
-            
+
             // Check if file is a PDF
             if path.is_file() && is_pdf_file(path) {
                 match self.index_pdf(path) {
@@ -34,10 +34,10 @@ impl PdfIndexer {
                 }
             }
         }
-        
+
         Ok(count)
     }
-    
+
     fn index_pdf(&self, path: &Path) -> Result<()> {
         let metadata = fs::metadata(path)?;
         let size = metadata.len() as i64;
@@ -45,16 +45,16 @@ impl PdfIndexer {
             .modified()?
             .duration_since(std::time::UNIX_EPOCH)?
             .as_secs() as i64;
-        
+
         let title = path
             .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or("Untitled")
             .to_string();
-        
+
         // Extract text from PDF
         let (content, pages) = extract_text_from_pdf(path)?;
-        
+
         let doc = PdfDocument {
             id: None,
             path: path.to_string_lossy().to_string(),
@@ -64,9 +64,9 @@ impl PdfIndexer {
             modified,
             pages: Some(pages),
         };
-        
+
         self.db.insert_pdf(&doc)?;
-        
+
         Ok(())
     }
 }
@@ -79,16 +79,26 @@ fn is_pdf_file(path: &Path) -> bool {
 }
 
 fn extract_text_from_pdf(path: &Path) -> Result<(String, i32)> {
-    // Try to extract text using pdf-extract
-    match pdf_extract::extract_text(path) {
-        Ok(text) => {
-            // Count approximate pages (rough estimate based on text length)
+    // Try to extract text using pdf-extract, catching panics
+    let path_buf = path.to_path_buf();
+    let result = std::panic::catch_unwind(|| {
+        pdf_extract::extract_text(&path_buf)
+    });
+
+    match result {
+        Ok(Ok(text)) => {
+            // Successfully extracted text
             let pages = estimate_page_count(&text);
             Ok((text, pages))
         }
-        Err(e) => {
-            // If extraction fails, return empty content but still index the file
+        Ok(Err(e)) => {
+            // Extraction returned an error
             eprintln!("Warning: Could not extract text from {}: {}", path.display(), e);
+            Ok((String::new(), 0))
+        }
+        Err(_) => {
+            // Extraction panicked (e.g., unsupported PDF encoding)
+            eprintln!("Warning: PDF extraction panicked for {} (possibly unsupported encoding)", path.display());
             Ok((String::new(), 0))
         }
     }

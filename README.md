@@ -47,11 +47,21 @@ npm install
 npm run dev
 ```
 
+To run just the frontend (in a browser):
+```bash
+npm run frontend:dev
+```
+
 ### Building
 
 Build the application for your platform:
 ```bash
 npm run build
+```
+
+To build just the frontend assets:
+```bash
+npm run frontend:build
 ```
 
 The built application will be available in `src-tauri/target/release`.
@@ -74,7 +84,7 @@ All PDF text content is extracted and indexed using SQLite's FTS5 engine, enabli
 
 ### Boolean Operators
 - **AND**: Find documents containing all terms
-- **OR**: Find documents containing any of the terms  
+- **OR**: Find documents containing any of the terms
 - **NOT**: Exclude documents containing specific terms
 
 ### Filters

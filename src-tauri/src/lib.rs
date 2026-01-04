@@ -24,7 +24,7 @@ struct AppState {
 #[tauri::command]
 async fn index_pdfs(folder_path: String, state: State<'_, AppState>) -> Result<IndexResult, String> {
     let start = std::time::Instant::now();
-    
+
     // Get or create database
     let db = {
         let mut db_lock = state.db.lock().unwrap();
@@ -35,17 +35,35 @@ async fn index_pdfs(folder_path: String, state: State<'_, AppState>) -> Result<I
         }
         db_lock.clone()
     };
-    
+
     let database = db.ok_or("Database not initialized")?;
     let indexer = PdfIndexer::new(database);
-    
+
     let count = indexer
         .index_folder(&folder_path)
         .map_err(|e| format!("Indexing failed: {}", e))?;
-    
+
     let duration = start.elapsed().as_millis();
-    
+
     Ok(IndexResult { count, duration })
+}
+
+#[tauri::command]
+async fn get_index_stats(state: State<'_, AppState>) -> Result<i64, String> {
+    let db = {
+        let mut db_lock = state.db.lock().unwrap();
+        if db_lock.is_none() {
+            let db_path = get_db_path().map_err(|e| format!("Failed to get DB path: {}", e))?;
+            let database = Database::new(db_path).map_err(|e| format!("Failed to create database: {}", e))?;
+            *db_lock = Some(database);
+        }
+        db_lock.clone()
+    };
+
+    let database = db.ok_or("Database not initialized")?;
+    database
+        .get_count()
+        .map_err(|e| format!("Failed to get count: {}", e))
 }
 
 #[tauri::command]
@@ -58,14 +76,14 @@ async fn search_pdfs(
     let db = db_lock
         .as_ref()
         .ok_or("Database not initialized. Please index PDFs first.")?;
-    
+
     // Transform query to FTS5 format
     let fts_query = transform_query(&query);
-    
+
     let results = db
         .search(&fts_query, &filters)
         .map_err(|e| format!("Search failed: {}", e))?;
-    
+
     Ok(results)
 }
 
@@ -78,7 +96,7 @@ async fn open_pdf(path: String) -> Result<(), String> {
             .spawn()
             .map_err(|e| format!("Failed to open PDF: {}", e))?;
     }
-    
+
     #[cfg(target_os = "macos")]
     {
         std::process::Command::new("open")
@@ -86,7 +104,7 @@ async fn open_pdf(path: String) -> Result<(), String> {
             .spawn()
             .map_err(|e| format!("Failed to open PDF: {}", e))?;
     }
-    
+
     #[cfg(target_os = "linux")]
     {
         std::process::Command::new("xdg-open")
@@ -94,7 +112,7 @@ async fn open_pdf(path: String) -> Result<(), String> {
             .spawn()
             .map_err(|e| format!("Failed to open PDF: {}", e))?;
     }
-    
+
     Ok(())
 }
 
@@ -119,9 +137,9 @@ fn transform_query(query: &str) -> String {
             }
         })
         .collect();
-    
+
     let has_boolean_operator = tokens.iter().any(|t| t == "AND" || t == "OR" || t == "NOT");
-    
+
     if has_boolean_operator {
         tokens.join(" ")
     } else if tokens.len() > 1 {
@@ -139,7 +157,7 @@ pub fn run() {
         .manage(AppState {
             db: Mutex::new(None),
         })
-        .invoke_handler(tauri::generate_handler![index_pdfs, search_pdfs, open_pdf])
+        .invoke_handler(tauri::generate_handler![index_pdfs, search_pdfs, open_pdf, get_index_stats])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -30,7 +30,7 @@ selectFolderBtn.addEventListener('click', async () => {
       multiple: false,
       title: 'Select folder to index PDFs'
     });
-    
+
     if (selected) {
       selectedFolder = selected;
       selectedFolderSpan.textContent = selectedFolder;
@@ -45,11 +45,11 @@ selectFolderBtn.addEventListener('click', async () => {
 // Index PDFs
 indexPdfsBtn.addEventListener('click', async () => {
   if (!selectedFolder || isIndexing) return;
-  
+
   isIndexing = true;
   indexPdfsBtn.disabled = true;
   indexStatus.textContent = 'Indexing...';
-  
+
   try {
     const result = await invoke('index_pdfs', { folderPath: selectedFolder });
     indexStatus.textContent = `Indexed ${result.count} PDFs in ${result.duration}ms`;
@@ -71,9 +71,9 @@ async function performSearch() {
     showEmptyState('Enter a search query to find PDFs');
     return;
   }
-  
+
   resultsContainer.innerHTML = '<div class="empty-state"><p>Searching...</p></div>';
-  
+
   try {
     const filters = {
       min_size: minSizeInput.value ? parseInt(minSizeInput.value) * 1024 : null,
@@ -81,7 +81,7 @@ async function performSearch() {
       date_from: dateFromInput.value || null,
       date_to: dateToInput.value || null,
     };
-    
+
     const results = await invoke('search_pdfs', { query, filters });
     displayResults(results);
   } catch (error) {
@@ -117,9 +117,9 @@ function displayResults(results) {
     showEmptyState('No results found');
     return;
   }
-  
+
   resultsCount.textContent = `${results.length} result${results.length !== 1 ? 's' : ''}`;
-  
+
   resultsContainer.innerHTML = results.map(result => `
     <div class="result-item" onclick="window.__openPdf('${escapePath(result.path)}')">
       <div class="result-title">${escapeHtml(result.title || getFileName(result.path))}</div>
@@ -182,20 +182,33 @@ function formatDate(timestamp) {
 
 function highlightSnippet(snippet, query) {
   if (!query) return escapeHtml(snippet);
-  
+
   // Extract search terms (simple parsing, ignoring operators for highlighting)
-  const terms = query.split(/\s+/).filter(t => 
+  const terms = query.split(/\s+/).filter(t =>
     !['AND', 'OR', 'NOT'].includes(t.toUpperCase())
   );
-  
+
   let highlighted = escapeHtml(snippet);
   terms.forEach(term => {
     const regex = new RegExp(`(${term})`, 'gi');
     highlighted = highlighted.replace(regex, '<span class="highlight">$1</span>');
   });
-  
+
   return highlighted;
 }
 
+// Load index stats on startup
+async function loadIndexStats() {
+  try {
+    const count = await invoke('get_index_stats');
+    if (count > 0) {
+      indexStatus.textContent = `${count} PDFs indexed`;
+    }
+  } catch (error) {
+    console.error('Error loading index stats:', error);
+  }
+}
+
 // Initialize
+loadIndexStats();
 showEmptyState('Select a folder to index PDFs, then search for files');
