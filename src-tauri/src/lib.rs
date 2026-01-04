@@ -4,7 +4,7 @@
 mod database;
 mod indexer;
 
-use database::{Database, SearchFilters};
+use database::{Database, SearchFilters, IndexedFolder};
 use indexer::PdfIndexer;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -116,6 +116,35 @@ async fn open_pdf(path: String) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+async fn get_indexed_folders(state: State<'_, AppState>) -> Result<Vec<IndexedFolder>, String> {
+    let db = {
+        let mut db_lock = state.db.lock().unwrap();
+        if db_lock.is_none() {
+            let db_path = get_db_path().map_err(|e| format!("Failed to get DB path: {}", e))?;
+            let database = Database::new(db_path).map_err(|e| format!("Failed to create database: {}", e))?;
+            *db_lock = Some(database);
+        }
+        db_lock.clone()
+    };
+
+    let database = db.ok_or("Database not initialized")?;
+    database
+        .get_indexed_folders()
+        .map_err(|e| format!("Failed to get folders: {}", e))
+}
+
+#[tauri::command]
+async fn remove_indexed_folder(folder_path: String, state: State<'_, AppState>) -> Result<(), String> {
+    let db_lock = state.db.lock().unwrap();
+    let db = db_lock
+        .as_ref()
+        .ok_or("Database not initialized")?;
+
+    db.remove_indexed_folder(&folder_path)
+        .map_err(|e| format!("Failed to remove folder: {}", e))
+}
+
 fn get_db_path() -> anyhow::Result<PathBuf> {
     let mut path = dirs::data_local_dir()
         .ok_or_else(|| anyhow::anyhow!("Could not find data directory"))?;
@@ -157,7 +186,14 @@ pub fn run() {
         .manage(AppState {
             db: Mutex::new(None),
         })
-        .invoke_handler(tauri::generate_handler![index_pdfs, search_pdfs, open_pdf, get_index_stats])
+        .invoke_handler(tauri::generate_handler![
+            index_pdfs, 
+            search_pdfs, 
+            open_pdf, 
+            get_index_stats,
+            get_indexed_folders,
+            remove_indexed_folder
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

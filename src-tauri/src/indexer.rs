@@ -16,6 +16,9 @@ impl PdfIndexer {
     pub fn index_folder(&self, folder_path: &str) -> Result<usize> {
         let mut count = 0;
 
+        // First, remove existing PDFs from this folder to allow re-indexing
+        self.db.remove_pdfs_for_folder(folder_path)?;
+
         // Walk through directory recursively
         for entry in WalkDir::new(folder_path)
             .follow_links(true)
@@ -26,7 +29,7 @@ impl PdfIndexer {
 
             // Check if file is a PDF
             if path.is_file() && is_pdf_file(path) {
-                match self.index_pdf(path) {
+                match self.index_pdf(path, folder_path) {
                     Ok(_) => count += 1,
                     Err(e) => {
                         eprintln!("Error indexing {}: {}", path.display(), e);
@@ -34,11 +37,14 @@ impl PdfIndexer {
                 }
             }
         }
+        
+        // Update folder timestamp
+        self.db.add_indexed_folder(folder_path)?;
 
         Ok(count)
     }
 
-    fn index_pdf(&self, path: &Path) -> Result<()> {
+    fn index_pdf(&self, path: &Path, folder_path: &str) -> Result<()> {
         let metadata = fs::metadata(path)?;
         let size = metadata.len() as i64;
         let modified = metadata
@@ -65,7 +71,7 @@ impl PdfIndexer {
             pages: Some(pages),
         };
 
-        self.db.insert_pdf(&doc)?;
+        self.db.insert_pdf(&doc, folder_path)?;
 
         Ok(())
     }
