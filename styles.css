@@ -83,6 +83,7 @@ body {
 }
 
 /* Respect user's motion preferences globally */
+/* This rule applies to all animations, transitions, and transforms throughout the stylesheet */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
