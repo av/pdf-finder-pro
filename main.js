@@ -389,24 +389,6 @@ function showSkeletonLoader(count = 3) {
   resultsContainer.innerHTML = `<div class="skeleton-loader">${skeletons}</div>`;
   resultsCount.textContent = '';
 }
-  
-  resultsContainer.innerHTML = Object.entries(groupedResults).map(([folder, items]) => {
-    const folderId = btoa(folder).replace(/[^a-zA-Z0-9]/g, '');
-    return `
-      <div class="folder-group">
-        <div class="folder-group-header" onclick="window.__toggleFolderGroup('${folderId}')">
-          <i data-lucide="chevron-down" class="folder-group-toggle" id="toggle-${folderId}"></i>
-          <span class="folder-group-title"><i data-lucide="folder" class="inline-icon"></i> ${escapeHtml(getFolderName(folder))}</span>
-          <span class="folder-group-count">${items.length} result${items.length !== 1 ? 's' : ''}</span>
-        </div>
-        <div class="folder-group-results" id="results-${folderId}">
-          ${items.map(result => renderResultItem(result)).join('')}
-        </div>
-      </div>
-    `;
-  }).join('');
-  createIcons({ icons });
-}
 
 // Group results by parent folder
 function groupByFolder(results) {
@@ -653,18 +635,6 @@ async function init() {
     showEmptyState('noFolders');
   }
   
-  createIcons({ icons });
-}
-
-init();
-    // Hide guide if already has indexed PDFs
-    guideContent.style.display = 'none';
-    toggleGuideBtn.textContent = 'Show';
-  } else {
-    showEmptyState('Add a folder to start indexing PDFs');
-  }
-  
-  // Initialize Lucide icons
   createIcons({ icons });
 }
 
