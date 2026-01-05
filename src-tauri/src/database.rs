@@ -1,5 +1,6 @@
-use rusqlite::{params, Connection, Result as SqliteResult};
+use rusqlite::{params, Connection, Result as SqliteResult, Transaction};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
@@ -48,6 +49,14 @@ impl Database {
     pub fn new(db_path: PathBuf) -> anyhow::Result<Self> {
         let conn = Connection::open(db_path)?;
         
+        // Enable optimizations for better write performance
+        conn.execute_batch(
+            "PRAGMA journal_mode=WAL;
+             PRAGMA synchronous=NORMAL;
+             PRAGMA cache_size=-64000;
+             PRAGMA temp_store=MEMORY;"
+        )?;
+        
         // Create folders table to track indexed folders
         conn.execute(
             "CREATE TABLE IF NOT EXISTS indexed_folders (
@@ -79,14 +88,16 @@ impl Database {
             [],
         );
         
-        // Create FTS5 virtual table for full-text search
+        // Create FTS5 virtual table with optimized tokenizer
+        // Using porter tokenizer for better stemming support
         conn.execute(
             "CREATE VIRTUAL TABLE IF NOT EXISTS pdfs_fts USING fts5(
                 path UNINDEXED,
                 title,
                 content,
                 content=pdfs,
-                content_rowid=id
+                content_rowid=id,
+                tokenize='porter unicode61 remove_diacritics 1'
             )",
             [],
         )?;
@@ -116,6 +127,9 @@ impl Database {
             [],
         )?;
         
+        // Optimize FTS5 index
+        let _ = conn.execute("INSERT INTO pdfs_fts(pdfs_fts) VALUES('optimize')", []);
+        
         Ok(Database {
             conn: Arc::new(Mutex::new(conn)),
         })
@@ -141,12 +155,78 @@ impl Database {
         Ok(())
     }
     
+    /// Batch insert multiple PDFs in a single transaction for better performance
+    /// This is significantly faster than individual inserts
+    pub fn batch_insert_pdfs(&self, docs: &[PdfDocument], folder_path: &str) -> anyhow::Result<()> {
+        let mut conn = self.conn.lock().unwrap();
+        
+        let tx = conn.transaction()?;
+        
+        {
+            let mut stmt = tx.prepare(
+                "INSERT OR REPLACE INTO pdfs (path, title, content, size, modified, pages, folder_path)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)"
+            )?;
+            
+            for doc in docs {
+                stmt.execute(params![
+                    &doc.path,
+                    &doc.title,
+                    &doc.content,
+                    doc.size,
+                    doc.modified,
+                    doc.pages,
+                    folder_path
+                ])?;
+            }
+        }
+        
+        tx.commit()?;
+        
+        Ok(())
+    }
+    
+    /// Get existing files in a folder with their metadata for incremental indexing
+    pub fn get_files_in_folder(&self, folder_path: &str) -> anyhow::Result<HashMap<String, (i64, i64)>> {
+        let conn = self.conn.lock().unwrap();
+        
+        let mut stmt = conn.prepare(
+            "SELECT path, modified, size FROM pdfs WHERE folder_path = ?1"
+        )?;
+        
+        let rows = stmt.query_map(params![folder_path], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, i64>(1)?,
+                row.get::<_, i64>(2)?,
+            ))
+        })?;
+        
+        let mut result = HashMap::new();
+        for row in rows {
+            if let Ok((path, modified, size)) = row {
+                result.insert(path, (modified, size));
+            }
+        }
+        
+        Ok(result)
+    }
+    
+    /// Remove a specific PDF by path
+    pub fn remove_pdf_by_path(&self, path: &str) -> anyhow::Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute("DELETE FROM pdfs WHERE path = ?1", params![path])?;
+        Ok(())
+    }
+    
     pub fn search(&self, query: &str, filters: &SearchFilters) -> anyhow::Result<Vec<SearchResult>> {
         let conn = self.conn.lock().unwrap();
         
         // Build the search query with filters
+        // Use BM25 ranking for better relevance
         let mut sql = String::from(
-            "SELECT p.path, p.title, p.size, p.modified, p.pages, snippet(pdfs_fts, 2, '', '', '...', 64) as snippet
+            "SELECT p.path, p.title, p.size, p.modified, p.pages, 
+                    snippet(pdfs_fts, 2, '<mark>', '</mark>', '...', 64) as snippet
              FROM pdfs p
              INNER JOIN pdfs_fts ON p.id = pdfs_fts.rowid
              WHERE pdfs_fts MATCH ?1"
@@ -178,7 +258,8 @@ impl Database {
             }
         }
         
-        sql.push_str(" ORDER BY rank LIMIT 100");
+        // Order by BM25 rank (best matches first) and limit results
+        sql.push_str(" ORDER BY bm25(pdfs_fts) LIMIT 100");
         
         let params_refs: Vec<&dyn rusqlite::ToSql> = params_vec.iter().map(|p| p.as_ref()).collect();
         
@@ -275,3 +356,126 @@ fn parse_date_to_timestamp(date_str: &str) -> anyhow::Result<i64> {
     let date = NaiveDate::parse_from_str(date_str, "%Y-%m-%d")?;
     Ok(date.and_hms_opt(0, 0, 0).unwrap().and_utc().timestamp())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    fn create_test_db() -> Database {
+        let temp_dir = std::env::temp_dir();
+        let db_path = temp_dir.join(format!("test_pdf_db_{}.db", uuid::Uuid::new_v4()));
+        Database::new(db_path).unwrap()
+    }
+
+    fn create_test_document(path: &str) -> PdfDocument {
+        PdfDocument {
+            id: None,
+            path: path.to_string(),
+            title: "Test Document".to_string(),
+            content: "This is test content for searching".to_string(),
+            size: 1024,
+            modified: 1000000,
+            pages: Some(5),
+        }
+    }
+
+    #[test]
+    fn test_insert_and_get_count() {
+        let db = create_test_db();
+        let doc = create_test_document("/test/doc1.pdf");
+        
+        db.insert_pdf(&doc, "/test").unwrap();
+        let count = db.get_count().unwrap();
+        
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn test_batch_insert() {
+        let db = create_test_db();
+        
+        let docs = vec![
+            create_test_document("/test/doc1.pdf"),
+            create_test_document("/test/doc2.pdf"),
+            create_test_document("/test/doc3.pdf"),
+        ];
+        
+        db.batch_insert_pdfs(&docs, "/test").unwrap();
+        let count = db.get_count().unwrap();
+        
+        assert_eq!(count, 3);
+    }
+
+    #[test]
+    fn test_get_files_in_folder() {
+        let db = create_test_db();
+        
+        let doc1 = create_test_document("/test/doc1.pdf");
+        let doc2 = create_test_document("/test/doc2.pdf");
+        
+        db.insert_pdf(&doc1, "/test").unwrap();
+        db.insert_pdf(&doc2, "/test").unwrap();
+        
+        let files = db.get_files_in_folder("/test").unwrap();
+        
+        assert_eq!(files.len(), 2);
+        assert!(files.contains_key("/test/doc1.pdf"));
+        assert!(files.contains_key("/test/doc2.pdf"));
+    }
+
+    #[test]
+    fn test_search_basic() {
+        let db = create_test_db();
+        
+        let doc = PdfDocument {
+            id: None,
+            path: "/test/doc1.pdf".to_string(),
+            title: "Machine Learning".to_string(),
+            content: "This document discusses machine learning algorithms".to_string(),
+            size: 2048,
+            modified: 1000000,
+            pages: Some(10),
+        };
+        
+        db.insert_pdf(&doc, "/test").unwrap();
+        
+        let filters = SearchFilters {
+            min_size: None,
+            max_size: None,
+            date_from: None,
+            date_to: None,
+        };
+        
+        let results = db.search("machine", &filters).unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].title, "Machine Learning");
+    }
+
+    #[test]
+    fn test_remove_pdf_by_path() {
+        let db = create_test_db();
+        let doc = create_test_document("/test/doc1.pdf");
+        
+        db.insert_pdf(&doc, "/test").unwrap();
+        assert_eq!(db.get_count().unwrap(), 1);
+        
+        db.remove_pdf_by_path("/test/doc1.pdf").unwrap();
+        assert_eq!(db.get_count().unwrap(), 0);
+    }
+
+    #[test]
+    fn test_indexed_folders() {
+        let db = create_test_db();
+        
+        db.add_indexed_folder("/test/folder1").unwrap();
+        db.add_indexed_folder("/test/folder2").unwrap();
+        
+        let folders = db.get_indexed_folders().unwrap();
+        assert_eq!(folders.len(), 2);
+    }
+}
+
+// Add uuid dependency only for tests
+#[cfg(test)]
+use uuid;
