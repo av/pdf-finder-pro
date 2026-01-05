@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
+import { createIcons, icons } from 'lucide';
 
 let searchTimeout;
 let currentResults = [];
@@ -41,11 +42,12 @@ toggleGuideBtn.addEventListener('click', () => {
 toggleFiltersBtn.addEventListener('click', () => {
   if (filtersPanel.style.display === 'none') {
     filtersPanel.style.display = 'flex';
-    filterIcon.classList.add('open');
+    filterIcon.setAttribute('data-lucide', 'chevron-up');
   } else {
     filtersPanel.style.display = 'none';
-    filterIcon.classList.remove('open');
+    filterIcon.setAttribute('data-lucide', 'chevron-down');
   }
+  createIcons({ icons });
 });
 
 // Add folder for indexing
@@ -71,18 +73,20 @@ addFolderBtn.addEventListener('click', async () => {
 async function indexFolder(folderPath) {
   const loadingMsg = document.createElement('div');
   loadingMsg.className = 'empty-state';
-  loadingMsg.innerHTML = '<p>⏳ Indexing PDFs...</p>';
+  loadingMsg.innerHTML = '<p><i data-lucide="loader-2" class="loading-icon"></i> Indexing PDFs...</p>';
   foldersList.innerHTML = '';
   foldersList.appendChild(loadingMsg);
+  createIcons({ icons });
 
   try {
     const result = await invoke('index_pdfs', { folderPath });
     
     // Show success message
     const successMsg = document.createElement('div');
-    successMsg.style.cssText = 'padding: 1rem; background: #d1fae5; color: #065f46; border-radius: 6px; margin-bottom: 1rem;';
-    successMsg.textContent = `✅ Indexed ${result.count} PDFs in ${result.duration}ms`;
+    successMsg.style.cssText = 'padding: 1rem; background: #d1fae5; color: #065f46; border-radius: 6px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;';
+    successMsg.innerHTML = `<i data-lucide="check-circle-2" style="width: 20px; height: 20px;"></i> Indexed ${result.count} PDFs in ${result.duration}ms`;
     foldersList.insertBefore(successMsg, foldersList.firstChild);
+    createIcons({ icons });
     
     setTimeout(() => successMsg.remove(), 3000);
   } catch (error) {
@@ -106,20 +110,21 @@ async function loadIndexedFolders() {
         <div class="folder-info">
           <div class="folder-path-text">${escapeHtml(folder.path)}</div>
           <div class="folder-meta">
-            <span>📄 ${folder.pdf_count} PDFs</span>
-            <span>🕒 Last indexed: ${formatTimestamp(folder.last_indexed)}</span>
+            <span><i data-lucide="file-text" class="meta-icon"></i> ${folder.pdf_count} PDFs</span>
+            <span><i data-lucide="clock" class="meta-icon"></i> Last indexed: ${formatTimestamp(folder.last_indexed)}</span>
           </div>
         </div>
         <div class="folder-actions">
           <button class="icon-btn refresh" onclick="window.__reindexFolder('${escapePath(folder.path)}')" title="Re-index this folder">
-            🔄
+            <i data-lucide="refresh-cw"></i>
           </button>
           <button class="icon-btn delete" onclick="window.__removeFolder('${escapePath(folder.path)}')" title="Remove this folder">
-            🗑️
+            <i data-lucide="trash-2"></i>
           </button>
         </div>
       </div>
     `).join('');
+    createIcons({ icons });
   } catch (error) {
     console.error('Error loading folders:', error);
     foldersList.innerHTML = '<div class="empty-state"><p>Error loading folders</p></div>';
@@ -249,8 +254,8 @@ function displayResults(results) {
     return `
       <div class="folder-group">
         <div class="folder-group-header" onclick="window.__toggleFolderGroup('${folderId}')">
-          <span class="folder-group-toggle" id="toggle-${folderId}">▼</span>
-          <span class="folder-group-title">📁 ${escapeHtml(getFolderName(folder))}</span>
+          <i data-lucide="chevron-down" class="folder-group-toggle" id="toggle-${folderId}"></i>
+          <span class="folder-group-title"><i data-lucide="folder" class="inline-icon"></i> ${escapeHtml(getFolderName(folder))}</span>
           <span class="folder-group-count">${items.length} result${items.length !== 1 ? 's' : ''}</span>
         </div>
         <div class="folder-group-results" id="results-${folderId}">
@@ -259,6 +264,7 @@ function displayResults(results) {
       </div>
     `;
   }).join('');
+  createIcons({ icons });
 }
 
 // Group results by parent folder
@@ -293,11 +299,12 @@ window.__toggleFolderGroup = (folderId) => {
   
   if (resultsDiv.classList.contains('collapsed')) {
     resultsDiv.classList.remove('collapsed');
-    toggleIcon.classList.remove('collapsed');
+    toggleIcon.setAttribute('data-lucide', 'chevron-down');
   } else {
     resultsDiv.classList.add('collapsed');
-    toggleIcon.classList.add('collapsed');
+    toggleIcon.setAttribute('data-lucide', 'chevron-right');
   }
+  createIcons({ icons });
 };
 
 // Render a single result item
@@ -307,9 +314,9 @@ function renderResultItem(result) {
       <div class="result-title">${escapeHtml(result.title || getFileName(result.path))}</div>
       <div class="result-path">${escapeHtml(result.path)}</div>
       <div class="result-metadata">
-        <span>📄 ${formatFileSize(result.size)}</span>
-        <span>📅 Modified: ${formatDate(result.modified)}</span>
-        ${result.pages ? `<span>📖 ${result.pages} pages</span>` : ''}
+        <span><i data-lucide="file-text" class="meta-icon"></i> ${formatFileSize(result.size)}</span>
+        <span><i data-lucide="calendar" class="meta-icon"></i> Modified: ${formatDate(result.modified)}</span>
+        ${result.pages ? `<span><i data-lucide="book-open" class="meta-icon"></i> ${result.pages} pages</span>` : ''}
       </div>
       ${result.snippet ? `<div class="result-snippet">${highlightSnippet(result.snippet, searchInput.value)}</div>` : ''}
     </div>
@@ -330,11 +337,13 @@ window.__openPdf = async (path) => {
 function showEmptyState(message) {
   resultsContainer.innerHTML = `<div class="empty-state"><p>${escapeHtml(message)}</p></div>`;
   resultsCount.textContent = '';
+  createIcons({ icons });
 }
 
 function showError(message) {
-  resultsContainer.innerHTML = `<div class="empty-state" style="color: #ef4444;"><p>❌ ${escapeHtml(message)}</p></div>`;
+  resultsContainer.innerHTML = `<div class="empty-state" style="color: #ef4444;"><p><i data-lucide="x-circle" class="error-icon"></i> ${escapeHtml(message)}</p></div>`;
   resultsCount.textContent = '';
+  createIcons({ icons });
 }
 
 function escapeHtml(text) {
@@ -408,6 +417,9 @@ async function init() {
   } else {
     showEmptyState('Add a folder to start indexing PDFs');
   }
+  
+  // Initialize Lucide icons
+  createIcons({ icons });
 }
 
 init();
