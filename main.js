@@ -33,8 +33,10 @@ const dateToInput = document.getElementById('date-to');
 toggleSidebarBtn.addEventListener('click', () => {
   sidebar.classList.toggle('collapsed');
   const icon = toggleSidebarBtn.querySelector('i');
-  icon.setAttribute('data-lucide', sidebar.classList.contains('collapsed') ? 'panel-left-open' : 'panel-left-close');
-  createIcons({ icons });
+  if (icon) {
+    icon.setAttribute('data-lucide', sidebar.classList.contains('collapsed') ? 'panel-left-open' : 'panel-left-close');
+    createIcons({ icons });
+  }
 });
 
 // Help modal
