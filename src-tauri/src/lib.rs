@@ -39,11 +39,13 @@ async fn index_pdfs(folder_path: String, state: State<'_, AppState>) -> Result<I
     let database = db.ok_or("Database not initialized")?;
     let indexer = PdfIndexer::new(database);
 
+    log::info!("Starting indexing for folder: {}", folder_path);
     let count = indexer
         .index_folder(&folder_path)
         .map_err(|e| format!("Indexing failed: {}", e))?;
 
     let duration = start.elapsed().as_millis();
+    log::info!("Indexing completed: {} PDFs in {}ms", count, duration);
 
     Ok(IndexResult { count, duration })
 }
@@ -180,6 +182,13 @@ fn transform_query(query: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Initialize logging
+    env_logger::Builder::from_default_env()
+        .filter_level(log::LevelFilter::Info)
+        .init();
+    
+    log::info!("Starting PDF Finder Pro");
+    
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
