@@ -42,10 +42,13 @@ impl PdfIndexer {
     pub fn with_config(db: Database, config: IndexConfig) -> Self {
         // Configure Rayon thread pool if max_threads is specified
         if config.max_threads > 0 {
-            rayon::ThreadPoolBuilder::new()
+            match rayon::ThreadPoolBuilder::new()
                 .num_threads(config.max_threads)
                 .build_global()
-                .ok(); // Ignore errors if pool already initialized
+            {
+                Ok(_) => log::info!("Configured thread pool with {} threads", config.max_threads),
+                Err(_) => log::debug!("Thread pool already initialized, using existing configuration"),
+            }
         }
         
         PdfIndexer { db, config }
@@ -160,10 +163,6 @@ impl PdfIndexer {
             log::info!("Performance: {:.3}s per document average", avg_time_per_doc);
         }
         
-        Ok(count)
-        }
-
-        log::info!("Indexing complete: {} documents processed", count);
         Ok(count)
     }
 
@@ -323,21 +322,21 @@ fn extract_text_from_pdf(path: &Path, config: &IndexConfig) -> Result<(String, i
     });
 
     match result {
+        Ok(Ok(text)) if text.is_empty() => {
+            // Successfully extracted but text is empty
+            log::debug!("No text content extracted from {}", path.display());
+            Ok((String::new(), 0))
+        }
         Ok(Ok(text)) => {
-            // Successfully extracted text
-            if text.is_empty() {
-                log::debug!("No text content extracted from {}", path.display());
-                Ok((String::new(), 0))
-            } else {
-                log::debug!("Extracted {} bytes from {}", text.len(), path.display());
-                
-                // Normalize text for better indexing and search
-                // Reference: "Introduction to Information Retrieval" Ch. 2 - Text Processing
-                let normalized = normalize_text(&text);
-                let pages = estimate_page_count(&text);
-                
-                Ok((normalized, pages))
-            }
+            // Successfully extracted text with content
+            log::debug!("Extracted {} bytes from {}", text.len(), path.display());
+            
+            // Normalize text for better indexing and search
+            // Reference: "Introduction to Information Retrieval" Ch. 2 - Text Processing
+            let normalized = normalize_text(&text);
+            let pages = estimate_page_count(&text);
+            
+            Ok((normalized, pages))
         }
         Ok(Err(e)) => {
             // Extraction returned an error

@@ -396,26 +396,23 @@ fn optimize_search_query(query: &str) -> String {
         return query.to_string();
     }
     
-    // Remove excessive whitespace
+    // Remove excessive whitespace and normalize query structure
     let normalized = query.trim().split_whitespace()
         .collect::<Vec<_>>()
         .join(" ");
     
-    // Escape special FTS5 characters that might cause issues
-    // FTS5 uses: " ( ) * for special purposes
-    // We need to be careful not to break intentional operator usage
+    // Track quote state to preserve phrase search semantics
+    // This ensures "exact phrase" searches are processed correctly by FTS5
+    // Note: We preserve all characters as-is to maintain FTS5 operator functionality
+    // Future enhancement: Could add stop word removal or query expansion here
     let mut result = String::with_capacity(normalized.len());
     let mut in_quotes = false;
     
     for c in normalized.chars() {
-        match c {
-            '"' => {
-                in_quotes = !in_quotes;
-                result.push(c);
-            }
-            // Only escape these if not in quotes and not part of valid syntax
-            _ => result.push(c),
+        if c == '"' {
+            in_quotes = !in_quotes;
         }
+        result.push(c);
     }
     
     result
