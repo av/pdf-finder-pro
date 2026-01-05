@@ -6,13 +6,14 @@ let searchTimeout;
 let currentResults = [];
 
 // DOM Elements
-const guideSection = document.getElementById('guide-section');
-const toggleGuideBtn = document.getElementById('toggle-guide');
-const guideContent = document.getElementById('guide-content');
+const sidebar = document.getElementById('sidebar');
+const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+const showHelpBtn = document.getElementById('show-help');
+const closeHelpBtn = document.getElementById('close-help');
+const helpModal = document.getElementById('help-modal');
 const addFolderBtn = document.getElementById('add-folder');
 const foldersList = document.getElementById('folders-list');
 const searchInput = document.getElementById('search-input');
-const searchBtn = document.getElementById('search-btn');
 const clearSearchBtn = document.getElementById('clear-search');
 const resultsContainer = document.getElementById('results-container');
 const resultsCount = document.getElementById('results-count');
@@ -28,14 +29,29 @@ const maxSizeInput = document.getElementById('max-size');
 const dateFromInput = document.getElementById('date-from');
 const dateToInput = document.getElementById('date-to');
 
-// Toggle guide visibility
-toggleGuideBtn.addEventListener('click', () => {
-  if (guideContent.style.display === 'none') {
-    guideContent.style.display = 'block';
-    toggleGuideBtn.textContent = 'Hide';
-  } else {
-    guideContent.style.display = 'none';
-    toggleGuideBtn.textContent = 'Show';
+// Sidebar toggle
+toggleSidebarBtn.addEventListener('click', () => {
+  sidebar.classList.toggle('collapsed');
+  const icon = toggleSidebarBtn.querySelector('i');
+  if (icon) {
+    icon.setAttribute('data-lucide', sidebar.classList.contains('collapsed') ? 'panel-left-open' : 'panel-left-close');
+    createIcons({ icons });
+  }
+});
+
+// Help modal
+showHelpBtn.addEventListener('click', () => {
+  helpModal.style.display = 'flex';
+  createIcons({ icons });
+});
+
+closeHelpBtn.addEventListener('click', () => {
+  helpModal.style.display = 'none';
+});
+
+helpModal.addEventListener('click', (e) => {
+  if (e.target === helpModal) {
+    helpModal.style.display = 'none';
   }
 });
 
@@ -64,7 +80,9 @@ const shortcuts = {
     }
   },
   'Escape': () => {
-    if (searchInput.value) {
+    if (helpModal.style.display === 'flex') {
+      helpModal.style.display = 'none';
+    } else if (searchInput.value) {
       searchInput.value = '';
       clearSearchBtn.style.display = 'none';
       showEmptyState('default');
@@ -83,7 +101,8 @@ const shortcuts = {
   '?': (e) => {
     if (document.activeElement.tagName !== 'INPUT') {
       e.preventDefault();
-      showKeyboardShortcuts();
+      helpModal.style.display = 'flex';
+      createIcons({ icons });
     }
   }
 };
@@ -94,73 +113,16 @@ document.addEventListener('keydown', (e) => {
   if (handler) handler(e);
 });
 
-// Keyboard shortcuts help modal
-function showKeyboardShortcuts() {
-  const modal = document.createElement('div');
-  modal.className = 'shortcuts-modal-overlay';
-  modal.innerHTML = `
-    <div class="shortcuts-modal">
-      <div class="shortcuts-header">
-        <h2>Keyboard Shortcuts</h2>
-        <button class="icon-btn close-btn">
-          <i data-lucide="x"></i>
-        </button>
-      </div>
-      <div class="shortcuts-list">
-        <div class="shortcut-item">
-          <div><kbd>⌘</kbd> <kbd>K</kbd> or <kbd>Ctrl</kbd> <kbd>K</kbd></div>
-          <span>Focus search</span>
-        </div>
-        <div class="shortcut-item">
-          <div><kbd>/</kbd></div>
-          <span>Quick search</span>
-        </div>
-        <div class="shortcut-item">
-          <div><kbd>Enter</kbd></div>
-          <span>Execute search</span>
-        </div>
-        <div class="shortcut-item">
-          <div><kbd>Esc</kbd></div>
-          <span>Clear search</span>
-        </div>
-        <div class="shortcut-item">
-          <div><kbd>?</kbd></div>
-          <span>Show this help</span>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-  createIcons({ icons });
-  
-  // Close button
-  modal.querySelector('.close-btn').addEventListener('click', () => {
-    modal.remove();
-  });
-  
-  // Close on overlay click
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.remove();
-  });
-  
-  // Close on Escape
-  const closeOnEsc = (e) => {
-    if (e.key === 'Escape') {
-      modal.remove();
-      document.removeEventListener('keydown', closeOnEsc);
-    }
-  };
-  document.addEventListener('keydown', closeOnEsc);
-}
-
 // Toggle filters visibility
 toggleFiltersBtn.addEventListener('click', () => {
   if (filtersPanel.style.display === 'none') {
     filtersPanel.style.display = 'flex';
-    filterIcon.setAttribute('data-lucide', 'chevron-up');
+    toggleFiltersBtn.classList.add('active');
+    filterIcon.setAttribute('data-lucide', 'sliders-horizontal');
   } else {
     filtersPanel.style.display = 'none';
-    filterIcon.setAttribute('data-lucide', 'chevron-down');
+    toggleFiltersBtn.classList.remove('active');
+    filterIcon.setAttribute('data-lucide', 'sliders-horizontal');
   }
   createIcons({ icons });
 });
@@ -187,8 +149,8 @@ addFolderBtn.addEventListener('click', async () => {
 // Index a folder
 async function indexFolder(folderPath) {
   const loadingMsg = document.createElement('div');
-  loadingMsg.className = 'empty-state';
-  loadingMsg.innerHTML = '<p><i data-lucide="loader-2" class="loading-icon"></i> Indexing PDFs...</p>';
+  loadingMsg.className = 'empty-state-small';
+  loadingMsg.innerHTML = '<p><i data-lucide="loader-2" class="loading-icon"></i> Indexing...</p>';
   foldersList.innerHTML = '';
   foldersList.appendChild(loadingMsg);
   createIcons({ icons });
@@ -210,33 +172,36 @@ async function loadIndexedFolders() {
     const folders = await invoke('get_indexed_folders');
     
     if (!folders || folders.length === 0) {
-      foldersList.innerHTML = '<div class="empty-state"><p>No folders indexed yet. Click "Add Folder" to get started.</p></div>';
+      foldersList.innerHTML = '<div class="empty-state-small"><p>No folders yet</p></div>';
       return;
     }
 
-    foldersList.innerHTML = folders.map(folder => `
-      <div class="folder-item" data-path="${escapeHtml(folder.path)}">
-        <div class="folder-info">
-          <div class="folder-path-text">${escapeHtml(folder.path)}</div>
-          <div class="folder-meta">
-            <span><i data-lucide="file-text" class="meta-icon"></i> ${folder.pdf_count} PDFs</span>
-            <span><i data-lucide="clock" class="meta-icon"></i> Last indexed: ${formatTimestamp(folder.last_indexed)}</span>
+    foldersList.innerHTML = folders.map(folder => {
+      const folderName = folder.path.split(/[\\/]/).pop() || folder.path;
+      return `
+        <div class="folder-item" data-path="${escapeHtml(folder.path)}" title="${escapeHtml(folder.path)}">
+          <div class="folder-info">
+            <div class="folder-path-text">${escapeHtml(folderName)}</div>
+            <div class="folder-meta">
+              <span><i data-lucide="file-text" class="meta-icon"></i> ${folder.pdf_count} PDFs</span>
+              <span><i data-lucide="clock" class="meta-icon"></i> ${formatTimestamp(folder.last_indexed)}</span>
+            </div>
+          </div>
+          <div class="folder-actions">
+            <button class="icon-btn refresh" onclick="window.__reindexFolder('${escapePath(folder.path)}')" title="Re-index">
+              <i data-lucide="refresh-cw"></i>
+            </button>
+            <button class="icon-btn delete" onclick="window.__removeFolder('${escapePath(folder.path)}')" title="Remove">
+              <i data-lucide="trash-2"></i>
+            </button>
           </div>
         </div>
-        <div class="folder-actions">
-          <button class="icon-btn refresh" onclick="window.__reindexFolder('${escapePath(folder.path)}')" title="Re-index this folder">
-            <i data-lucide="refresh-cw"></i>
-          </button>
-          <button class="icon-btn delete" onclick="window.__removeFolder('${escapePath(folder.path)}')" title="Remove this folder">
-            <i data-lucide="trash-2"></i>
-          </button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
     createIcons({ icons });
   } catch (error) {
     console.error('Error loading folders:', error);
-    foldersList.innerHTML = '<div class="empty-state"><p>Error loading folders</p></div>';
+    foldersList.innerHTML = '<div class="empty-state-small"><p>Error loading</p></div>';
   }
 }
 
@@ -296,17 +261,18 @@ async function performSearch() {
   }
 }
 
-searchBtn.addEventListener('click', performSearch);
-
+// Enter key triggers immediate search
 searchInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
+    clearTimeout(searchTimeout);
     performSearch();
   }
 });
 
+// Auto-search with debounce
 searchInput.addEventListener('input', () => {
   clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => performSearch(), 250);
+  searchTimeout = setTimeout(() => performSearch(), 300);
 });
 
 // Sort results
