@@ -397,25 +397,13 @@ fn optimize_search_query(query: &str) -> String {
     }
     
     // Remove excessive whitespace and normalize query structure
-    let normalized = query.trim().split_whitespace()
-        .collect::<Vec<_>>()
-        .join(" ");
-    
-    // Track quote state to preserve phrase search semantics
-    // This ensures "exact phrase" searches are processed correctly by FTS5
-    // Note: We preserve all characters as-is to maintain FTS5 operator functionality
+    // This improves consistency and ensures predictable FTS5 behavior
+    // Note: We preserve all FTS5 operators (AND, OR, NOT, quotes) as-is
     // Future enhancement: Could add stop word removal or query expansion here
-    let mut result = String::with_capacity(normalized.len());
-    let mut in_quotes = false;
-    
-    for c in normalized.chars() {
-        if c == '"' {
-            in_quotes = !in_quotes;
-        }
-        result.push(c);
-    }
-    
-    result
+    query.trim()
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 #[cfg(test)]

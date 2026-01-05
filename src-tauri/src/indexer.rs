@@ -322,13 +322,13 @@ fn extract_text_from_pdf(path: &Path, config: &IndexConfig) -> Result<(String, i
     });
 
     match result {
-        Ok(Ok(text)) if text.is_empty() => {
-            // Successfully extracted but text is empty
-            log::debug!("No text content extracted from {}", path.display());
-            Ok((String::new(), 0))
-        }
         Ok(Ok(text)) => {
-            // Successfully extracted text with content
+            // Successfully extracted text
+            if text.is_empty() {
+                log::debug!("No text content extracted from {}", path.display());
+                return Ok((String::new(), 0));
+            }
+            
             log::debug!("Extracted {} bytes from {}", text.len(), path.display());
             
             // Normalize text for better indexing and search
