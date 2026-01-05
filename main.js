@@ -13,6 +13,7 @@ const addFolderBtn = document.getElementById('add-folder');
 const foldersList = document.getElementById('folders-list');
 const searchInput = document.getElementById('search-input');
 const searchBtn = document.getElementById('search-btn');
+const clearSearchBtn = document.getElementById('clear-search');
 const resultsContainer = document.getElementById('results-container');
 const resultsCount = document.getElementById('results-count');
 const clearFiltersBtn = document.getElementById('clear-filters');
@@ -37,6 +38,120 @@ toggleGuideBtn.addEventListener('click', () => {
     toggleGuideBtn.textContent = 'Show';
   }
 });
+
+// Show/hide clear button in search input
+searchInput.addEventListener('input', () => {
+  clearSearchBtn.style.display = searchInput.value ? 'flex' : 'none';
+});
+
+// Clear search input
+clearSearchBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  clearSearchBtn.style.display = 'none';
+  searchInput.focus();
+  showEmptyState('default');
+  currentResults = [];
+  resultsCount.textContent = '';
+});
+
+// Keyboard shortcuts
+const shortcuts = {
+  'k': (e) => {
+    if (e.metaKey || e.ctrlKey) {
+      e.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    }
+  },
+  'Escape': () => {
+    if (searchInput.value) {
+      searchInput.value = '';
+      clearSearchBtn.style.display = 'none';
+      showEmptyState('default');
+      currentResults = [];
+      resultsCount.textContent = '';
+    } else if (document.activeElement === searchInput) {
+      searchInput.blur();
+    }
+  },
+  '/': (e) => {
+    if (document.activeElement.tagName !== 'INPUT') {
+      e.preventDefault();
+      searchInput.focus();
+    }
+  },
+  '?': (e) => {
+    if (document.activeElement.tagName !== 'INPUT') {
+      e.preventDefault();
+      showKeyboardShortcuts();
+    }
+  }
+};
+
+// Register shortcuts
+document.addEventListener('keydown', (e) => {
+  const handler = shortcuts[e.key];
+  if (handler) handler(e);
+});
+
+// Keyboard shortcuts help modal
+function showKeyboardShortcuts() {
+  const modal = document.createElement('div');
+  modal.className = 'shortcuts-modal-overlay';
+  modal.innerHTML = `
+    <div class="shortcuts-modal">
+      <div class="shortcuts-header">
+        <h2>Keyboard Shortcuts</h2>
+        <button class="icon-btn close-btn">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="shortcuts-list">
+        <div class="shortcut-item">
+          <div><kbd>⌘</kbd> <kbd>K</kbd> or <kbd>Ctrl</kbd> <kbd>K</kbd></div>
+          <span>Focus search</span>
+        </div>
+        <div class="shortcut-item">
+          <div><kbd>/</kbd></div>
+          <span>Quick search</span>
+        </div>
+        <div class="shortcut-item">
+          <div><kbd>Enter</kbd></div>
+          <span>Execute search</span>
+        </div>
+        <div class="shortcut-item">
+          <div><kbd>Esc</kbd></div>
+          <span>Clear search</span>
+        </div>
+        <div class="shortcut-item">
+          <div><kbd>?</kbd></div>
+          <span>Show this help</span>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  createIcons({ icons });
+  
+  // Close button
+  modal.querySelector('.close-btn').addEventListener('click', () => {
+    modal.remove();
+  });
+  
+  // Close on overlay click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
+  
+  // Close on Escape
+  const closeOnEsc = (e) => {
+    if (e.key === 'Escape') {
+      modal.remove();
+      document.removeEventListener('keydown', closeOnEsc);
+    }
+  };
+  document.addEventListener('keydown', closeOnEsc);
+}
 
 // Toggle filters visibility
 toggleFiltersBtn.addEventListener('click', () => {
@@ -81,17 +196,11 @@ async function indexFolder(folderPath) {
   try {
     const result = await invoke('index_pdfs', { folderPath });
     
-    // Show success message
-    const successMsg = document.createElement('div');
-    successMsg.style.cssText = 'padding: 1rem; background: #d1fae5; color: #065f46; border-radius: 6px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;';
-    successMsg.innerHTML = `<i data-lucide="check-circle-2" style="width: 20px; height: 20px;"></i> Indexed ${result.count} PDFs in ${result.duration}ms`;
-    foldersList.insertBefore(successMsg, foldersList.firstChild);
-    createIcons({ icons });
-    
-    setTimeout(() => successMsg.remove(), 3000);
+    // Show success toast
+    showToast(`Indexed ${result.count} PDFs in ${result.duration}ms`, 'success');
   } catch (error) {
     console.error('Error indexing PDFs:', error);
-    showError(`Indexing failed: ${error}`);
+    showToast(`Indexing failed: ${error}`, 'error');
   }
 }
 
@@ -145,6 +254,7 @@ window.__removeFolder = async (path) => {
   
   try {
     await invoke('remove_indexed_folder', { folderPath: path });
+    showToast('Folder removed successfully', 'success');
     await loadIndexedFolders();
     
     // Clear results if they were from this folder
@@ -153,7 +263,7 @@ window.__removeFolder = async (path) => {
     }
   } catch (error) {
     console.error('Error removing folder:', error);
-    showError(`Failed to remove folder: ${error}`);
+    showToast(`Failed to remove folder: ${error}`, 'error');
   }
 };
 
@@ -161,12 +271,12 @@ window.__removeFolder = async (path) => {
 async function performSearch() {
   const query = searchInput.value.trim();
   if (!query) {
-    showEmptyState('Enter a search query to find PDFs');
+    showEmptyState('default');
     currentResults = [];
     return;
   }
 
-  resultsContainer.innerHTML = '<div class="empty-state"><p>Searching...</p></div>';
+  showSkeletonLoader();
 
   try {
     const filters = {
@@ -220,7 +330,7 @@ clearFiltersBtn.addEventListener('click', () => {
 // Display results with folder grouping and sorting
 function displayResults(results) {
   if (!results || results.length === 0) {
-    showEmptyState('No results found');
+    showEmptyState('noResults');
     return;
   }
 
@@ -265,6 +375,19 @@ function displayResults(results) {
     `;
   }).join('');
   createIcons({ icons });
+}
+
+function showSkeletonLoader(count = 3) {
+  const skeletons = Array.from({ length: count }, () => `
+    <div class="skeleton-item">
+      <div class="skeleton-title"></div>
+      <div class="skeleton-text"></div>
+      <div class="skeleton-text short"></div>
+    </div>
+  `).join('');
+  
+  resultsContainer.innerHTML = `<div class="skeleton-loader">${skeletons}</div>`;
+  resultsCount.textContent = '';
 }
 
 // Group results by parent folder
@@ -334,16 +457,113 @@ window.__openPdf = async (path) => {
 };
 
 // Utility functions
-function showEmptyState(message) {
-  resultsContainer.innerHTML = `<div class="empty-state"><p>${escapeHtml(message)}</p></div>`;
+function showEmptyState(type = 'default') {
+  const states = {
+    default: {
+      icon: 'search',
+      title: 'Ready to find your PDFs?',
+      message: 'Try searching for a topic, keyword, or phrase.',
+      action: null
+    },
+    noResults: {
+      icon: 'search-x',
+      title: 'No results found',
+      message: 'We searched everywhere but couldn\'t find that. Try different keywords or check your filters.',
+      action: null
+    },
+    noFolders: {
+      icon: 'folder-plus',
+      title: 'No folders indexed yet',
+      message: 'Add a folder containing PDFs to start building your searchable library.',
+      action: {
+        text: 'Add Folder',
+        onclick: 'document.getElementById("add-folder").click()'
+      }
+    },
+    indexing: {
+      icon: 'loader-2',
+      title: 'Indexing your PDFs...',
+      message: 'This might take a moment. You can search as soon as we\'re done.',
+      action: null,
+      iconClass: 'loading-icon'
+    },
+    searching: {
+      icon: 'loader-2',
+      title: 'Searching...',
+      message: '',
+      action: null,
+      iconClass: 'loading-icon'
+    }
+  };
+
+  const state = states[type] || states.default;
+  
+  resultsContainer.innerHTML = `
+    <div class="empty-state">
+      <i data-lucide="${state.icon}" class="empty-state-icon ${state.iconClass || ''}"></i>
+      <h3 class="empty-state-title">${state.title}</h3>
+      ${state.message ? `<p class="empty-state-message">${state.message}</p>` : ''}
+      ${state.action ? `
+        <button class="btn btn-primary" onclick="${state.action.onclick}">
+          ${state.action.text}
+        </button>
+      ` : ''}
+    </div>
+  `;
+  
   resultsCount.textContent = '';
   createIcons({ icons });
 }
 
 function showError(message) {
+  showToast(message, 'error');
   resultsContainer.innerHTML = `<div class="empty-state" style="color: #ef4444;"><p><i data-lucide="x-circle" class="error-icon"></i> ${escapeHtml(message)}</p></div>`;
   resultsCount.textContent = '';
   createIcons({ icons });
+}
+
+// Toast notification system
+function showToast(message, type = 'info', duration = 5000) {
+  const icons = {
+    success: 'check-circle-2',
+    error: 'x-circle',
+    warning: 'alert-circle',
+    info: 'info'
+  };
+
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  
+  toast.innerHTML = `
+    <i data-lucide="${icons[type]}" class="toast-icon"></i>
+    <div class="toast-content">
+      <div class="toast-message">${escapeHtml(message)}</div>
+    </div>
+    <button class="toast-close">
+      <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+    </button>
+  `;
+  
+  container.appendChild(toast);
+  createIcons({ icons: icons });
+  
+  // Close button
+  toast.querySelector('.toast-close').addEventListener('click', () => {
+    removeToast(toast);
+  });
+  
+  // Auto-dismiss
+  if (duration > 0) {
+    setTimeout(() => removeToast(toast), duration);
+  }
+  
+  return toast;
+}
+
+function removeToast(toast) {
+  toast.style.animation = 'slideOut 200ms ease-out';
+  setTimeout(() => toast.remove(), 200);
 }
 
 function escapeHtml(text) {
@@ -410,15 +630,11 @@ async function init() {
   
   const count = await invoke('get_index_stats').catch(() => 0);
   if (count > 0) {
-    showEmptyState(`${count} PDFs indexed. Enter a search query to find files.`);
-    // Hide guide if already has indexed PDFs
-    guideContent.style.display = 'none';
-    toggleGuideBtn.textContent = 'Show';
+    showEmptyState('default');
   } else {
-    showEmptyState('Add a folder to start indexing PDFs');
+    showEmptyState('noFolders');
   }
   
-  // Initialize Lucide icons
   createIcons({ icons });
 }
 

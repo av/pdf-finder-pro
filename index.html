@@ -48,12 +48,17 @@
         <div class="search-section">
           <h2><i data-lucide="search" class="section-icon"></i> Search PDFs</h2>
           <div class="search-box">
-            <input 
-              type="text" 
-              id="search-input" 
-              placeholder="Enter search query (supports AND, OR, NOT operators)"
-              autocomplete="off"
-            />
+            <div class="search-input-wrapper">
+              <input 
+                type="text" 
+                id="search-input" 
+                placeholder="Enter search query (supports AND, OR, NOT operators)"
+                autocomplete="off"
+              />
+              <button class="clear-btn" id="clear-search">
+                <i data-lucide="x"></i>
+              </button>
+            </div>
             <button id="search-btn" class="btn btn-primary">Search</button>
           </div>
 
@@ -102,6 +107,9 @@
         </div>
       </main>
     </div>
+    
+    <!-- Toast notification container -->
+    <div id="toast-container"></div>
     
     <script type="module" src="/main.js"></script>
   </body>
