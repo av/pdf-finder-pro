@@ -624,11 +624,6 @@ button:focus-visible {
   border: 1px solid var(--border-color);
 }
 
-.use-case-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
 .use-case-card h3 {
   font-size: 1.25rem;
   margin-bottom: 0.75rem;
@@ -637,16 +632,7 @@ button:focus-visible {
 
 .use-case-card p {
   color: var(--text-secondary);
-  font-style: italic;
   line-height: 1.6;
-  margin-bottom: 0.75rem;
-}
-
-.use-case-author {
-  display: block;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  font-style: normal;
 }
 
 /* Pricing Comparison Section */
