@@ -53,9 +53,10 @@ Perform comprehensive exploratory testing to:
 ### Documentation
 
 See detailed documentation in this folder:
-- [TESTING_REPORT.md](./TESTING_REPORT.md) - Complete testing report
-- [SECURITY_FIXES.md](./SECURITY_FIXES.md) - Detailed security fix documentation
-- [CHANGES_SUMMARY.md](./CHANGES_SUMMARY.md) - Summary of all changes
+- [TESTING_REPORT.md](./TESTING_REPORT.md) - Complete testing report (Round 1)
+- [SECURITY_FIXES.md](./SECURITY_FIXES.md) - Detailed security fix documentation (Round 1)
+- [CHANGES_SUMMARY.md](./CHANGES_SUMMARY.md) - Summary of all changes (Round 1)
+- [ADDITIONAL_ISSUES_ROUND2.md](./ADDITIONAL_ISSUES_ROUND2.md) - Additional issues and fixes (Round 2)
 
 ---
 
