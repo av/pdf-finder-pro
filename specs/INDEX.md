@@ -36,6 +36,28 @@ Complete index of all specifications in PDF Finder Pro.
 
 ---
 
+### Marketing & Distribution (January 2026)
+**Status**: ✅ Approved for Implementation  
+**Location**: `marketing/2026-01-revenue-generation/`  
+**Description**: Realistic distribution strategy for closed-source desktop app with 14-day free trial.
+
+**Documents**:
+- [📋 Marketing Plan](marketing/2026-01-revenue-generation/README.md) - Complete strategy
+
+**Approach**:
+- 14-day free trial (full features, no credit card)
+- Software directories (AlternativeTo, SourceForge)
+- Test Google Ads with $200 budget
+- Direct sales to small orgs (universities, law firms)
+- No viral expectations
+
+**Timeline**: 4 weeks validation  
+**Budget**: $200 ads, 40 hours  
+**Success Metric**: 10+ purchases in 2 months  
+**Impact**: Fast validation of product-market fit
+
+---
+
 ### UX Improvements (January 2026)
 **Status**: ✅ Approved for Implementation  
 **Location**: `ux-improvements/`  
@@ -105,6 +127,9 @@ Complete index of all specifications in PDF Finder Pro.
 
 ## 📁 By Category
 
+### Marketing
+- [Distribution Strategy - Jan 2026](marketing/2026-01-revenue-generation/) - ✅ Approved
+
 ### UX Improvements
 - [UX Improvements - Jan 2026](ux-improvements/) - ✅ Approved
 
@@ -135,6 +160,7 @@ Complete index of all specifications in PDF Finder Pro.
 
 ### ✅ Approved
 - [Payment & License System (Jan 2026)](features/2026-01-lemon-squeezy-payment/)
+- [Marketing & Distribution (Jan 2026)](marketing/2026-01-revenue-generation/)
 - [UX Improvements (Jan 2026)](ux-improvements/)
 
 ### 🚧 In Progress
@@ -152,6 +178,9 @@ Complete index of all specifications in PDF Finder Pro.
 ---
 
 ## 🔍 By Type
+
+### Marketing & Business
+- [Distribution Strategy (Jan 2026)](marketing/2026-01-revenue-generation/) - Closed-source app distribution
 
 ### UI/UX Design
 - [UX Improvements (Jan 2026)](ux-improvements/) - Comprehensive UX overhaul
@@ -183,6 +212,11 @@ Complete index of all specifications in PDF Finder Pro.
   - Week 2-3: License validation (Rust)
   - Week 4: Frontend UI
   - Week 5: Integration & testing
+- **January 7**: Marketing & Distribution spec created
+  - 14-day free trial implementation
+  - Software directory listings
+  - Test Google Ads ($200 budget)
+  - Direct sales to small organizations
 - **January**: UX Improvements specification created
   - Week 1: Foundation & quick wins
   - Week 2: Core features (dark mode, search history)
@@ -204,16 +238,18 @@ Complete index of all specifications in PDF Finder Pro.
 
 ### Most Referenced Specs
 1. [Payment & License System](features/2026-01-lemon-squeezy-payment/README.md) - Revenue implementation
-2. [UX Improvements Summary](ux-improvements/UX_IMPROVEMENTS_SUMMARY.md) - Quick overview
-3. [Performance Optimizations](performance/2026-01-indexing-optimizations/README.md) - Performance improvements
-4. [Quick Visual Examples](ux-improvements/QUICK_VISUAL_EXAMPLES.md) - Code samples
+2. [Marketing Plan](marketing/2026-01-revenue-generation/README.md) - Distribution strategy
+3. [UX Improvements Summary](ux-improvements/UX_IMPROVEMENTS_SUMMARY.md) - Quick overview
+4. [Performance Optimizations](performance/2026-01-indexing-optimizations/README.md) - Performance improvements
 
-### For Developers
+### For Solo Developers
 - [Payment Implementation Checklist](features/2026-01-lemon-squeezy-payment/implementation-checklist.md) - Step-by-step guide
+- [Marketing Plan](marketing/2026-01-revenue-generation/README.md) - What to do now
 - [Quick Visual Examples](ux-improvements/QUICK_VISUAL_EXAMPLES.md) - Copy-paste code
 - [Performance Best Practices](performance/2026-01-indexing-optimizations/best-practices.md) - Optimization patterns
 
-### For Product Managers
+### For Product/Business
+- [Marketing Plan](marketing/2026-01-revenue-generation/README.md) - Distribution strategy
 - [UX Improvements Summary](ux-improvements/UX_IMPROVEMENTS_SUMMARY.md) - Priorities
 - [Project Overview](ux-improvements/README_UX_PROJECT.md) - Success metrics
 
@@ -254,21 +290,23 @@ See [README.md](README.md) for detailed instructions.
 
 ## 📊 Statistics
 
-- **Total Specs**: 3
-- **Active Projects**: 2
-- **Completed**: 1
-- **Categories**: 8 (3 in use)
-- **Total Documents**: 13
-- **Total Size**: ~170 KB
-- **Total Lines**: ~7,100
+- **Total Specs**: 4
+- **Active Projects**: 3 (Payment, Marketing, UX)
+- **Completed**: 1 (Performance)
+- **Categories**: 8 (4 in use)
+- **Total Documents**: 15
+- **Total Size**: ~180 KB
+- **Total Lines**: ~7,500
 
 ---
 
 ## 🔮 Upcoming Specs
 
 ### Planned for Q1 2026
-- None scheduled yet
+- Marketing execution (Week 3-4: Launch phase)
+- UX improvements implementation (after marketing launch)
 
+<<<<<<< HEAD
 ### Under Consideration
 - Auto-update system
 - Search History Feature spec
@@ -276,6 +314,16 @@ See [README.md](README.md) for detailed instructions.
 - PDF Preview Feature spec
 - Volume licensing for teams
 - Mobile App spec
+=======
+### Under Consideration (After Revenue Validation)
+- Search History Feature spec
+- Folder Management Enhancement spec
+- PDF Preview Feature spec
+- OCR for Scanned PDFs spec
+- Team/Enterprise Features spec
+- Cloud Sync Integration spec (maybe)
+- Mobile App spec (low priority)
+>>>>>>> 7d19186 (- Week 4: ProductHunt push for 50-200 customers ($250-1,000))
 
 ---
 
