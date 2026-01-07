@@ -131,10 +131,12 @@ toggleFiltersBtn.addEventListener('click', () => {
   if (filtersPanel.style.display === 'none') {
     filtersPanel.style.display = 'flex';
     toggleFiltersBtn.classList.add('active');
+    toggleFiltersBtn.setAttribute('aria-expanded', 'true');
     filterIcon.setAttribute('data-lucide', 'sliders-horizontal');
   } else {
     filtersPanel.style.display = 'none';
     toggleFiltersBtn.classList.remove('active');
+    toggleFiltersBtn.setAttribute('aria-expanded', 'false');
     filterIcon.setAttribute('data-lucide', 'sliders-horizontal');
   }
   createIcons({ icons });
@@ -200,6 +202,7 @@ async function loadIndexedFolders() {
       const folderItem = document.createElement('div');
       folderItem.className = 'folder-item';
       folderItem.setAttribute('data-path', folder.path);
+      folderItem.setAttribute('role', 'listitem');
       folderItem.title = folder.path;
 
       folderItem.innerHTML = `
@@ -211,10 +214,10 @@ async function loadIndexedFolders() {
           </div>
         </div>
         <div class="folder-actions">
-          <button class="icon-btn refresh" title="Re-index">
+          <button class="icon-btn refresh" title="Re-index" aria-label="Re-index folder ${escapeHtml(folderName)}">
             <i data-lucide="refresh-cw"></i>
           </button>
-          <button class="icon-btn delete" title="Remove">
+          <button class="icon-btn delete" title="Remove" aria-label="Remove folder ${escapeHtml(folderName)}">
             <i data-lucide="trash-2"></i>
           </button>
         </div>
@@ -278,8 +281,8 @@ async function performSearch() {
 
   try {
     // Validate and sanitize filter inputs
-    const minSizeValue = minSizeInput.value ? parseInt(minSizeInput.value) : null;
-    const maxSizeValue = maxSizeInput.value ? parseInt(maxSizeInput.value) : null;
+    const minSizeValue = minSizeInput.value ? parseInt(minSizeInput.value, 10) : null;
+    const maxSizeValue = maxSizeInput.value ? parseInt(maxSizeInput.value, 10) : null;
 
     // Validate filter values
     if (minSizeValue !== null && (isNaN(minSizeValue) || minSizeValue < 0)) {
@@ -429,8 +432,12 @@ function displayResults(results) {
 
     const header = document.createElement('div');
     header.className = 'folder-group-header';
+    header.setAttribute('role', 'button');
+    header.setAttribute('aria-expanded', 'true');
+    header.setAttribute('aria-controls', `results-${folderId}`);
+    header.setAttribute('tabindex', '0');
     header.innerHTML = `
-      <i data-lucide="chevron-down" class="folder-group-toggle" id="toggle-${folderId}"></i>
+      <i data-lucide="chevron-down" class="folder-group-toggle" id="toggle-${folderId}" aria-hidden="true"></i>
       <span class="folder-group-title"><i data-lucide="folder" class="inline-icon"></i> ${escapeHtml(getFolderName(folder))}</span>
       <span class="folder-group-count">${items.length} result${items.length !== 1 ? 's' : ''}</span>
     `;
@@ -438,20 +445,32 @@ function displayResults(results) {
     const resultsDiv = document.createElement('div');
     resultsDiv.className = 'folder-group-results';
     resultsDiv.id = `results-${folderId}`;
+    resultsDiv.setAttribute('role', 'list');
     resultsDiv.innerHTML = items.map(result => renderResultItem(result)).join('');
 
     // Add click handler for toggling
     header.addEventListener('click', () => {
       const toggleIcon = document.getElementById(`toggle-${folderId}`);
+      const isCollapsed = resultsDiv.classList.contains('collapsed');
 
-      if (resultsDiv.classList.contains('collapsed')) {
+      if (isCollapsed) {
         resultsDiv.classList.remove('collapsed');
+        header.setAttribute('aria-expanded', 'true');
         if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-down');
       } else {
         resultsDiv.classList.add('collapsed');
+        header.setAttribute('aria-expanded', 'false');
         if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-right');
       }
       createIcons({ icons });
+    });
+
+    // Add keyboard handler for Enter and Space
+    header.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        header.click();
+      }
     });
 
     folderGroup.appendChild(header);
@@ -463,12 +482,26 @@ function displayResults(results) {
   resultsContainer.querySelectorAll('.result-item').forEach(item => {
     const path = item.getAttribute('data-path');
     if (path) {
+      // Click handler
       item.addEventListener('click', async () => {
         try {
           await invoke('open_pdf', { path });
         } catch (error) {
           console.error('Error opening PDF:', error);
           showError('Failed to open PDF. The file may have been moved or deleted.');
+        }
+      });
+      
+      // Keyboard handler for Enter and Space
+      item.addEventListener('keydown', async (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          try {
+            await invoke('open_pdf', { path });
+          } catch (error) {
+            console.error('Error opening PDF:', error);
+            showError('Failed to open PDF. The file may have been moved or deleted.');
+          }
         }
       });
     }
@@ -521,7 +554,7 @@ function getFolderName(path) {
 // Render a single result item
 function renderResultItem(result) {
   return `
-    <div class="result-item" data-path="${escapeHtml(result.path)}">
+    <div class="result-item" data-path="${escapeHtml(result.path)}" role="listitem button" tabindex="0" aria-label="Open ${escapeHtml(result.title || getFileName(result.path))}">
       <div class="result-title">${escapeHtml(result.title || getFileName(result.path))}</div>
       <div class="result-path">${escapeHtml(result.path)}</div>
       <div class="result-metadata">
@@ -617,7 +650,7 @@ function showEmptyState(type = 'default') {
 
 function showError(message) {
   showToast(message, 'error');
-  resultsContainer.innerHTML = `<div class="empty-state" style="color: #ef4444;"><p><i data-lucide="x-circle" class="error-icon"></i> ${escapeHtml(message)}</p></div>`;
+  resultsContainer.innerHTML = `<div class="empty-state error-state"><p><i data-lucide="x-circle" class="error-icon"></i> ${escapeHtml(message)}</p></div>`;
   resultsCount.textContent = '';
   createIcons({ icons });
 }
@@ -630,17 +663,21 @@ function showToast(message, type = 'info', duration = 5000) {
     warning: 'alert-circle',
     info: 'info'
   };
+  
+  // Validate type to prevent injection
+  const validType = icons.hasOwnProperty(type) ? type : 'info';
+  const iconName = icons[validType];
 
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
+  toast.className = `toast ${validType}`;
 
   toast.innerHTML = `
-    <i data-lucide="${icons[type]}" class="toast-icon"></i>
+    <i data-lucide="${iconName}" class="toast-icon"></i>
     <div class="toast-content">
       <div class="toast-message">${escapeHtml(message)}</div>
     </div>
-    <button class="toast-close">
+    <button class="toast-close" aria-label="Close notification">
       <i data-lucide="x" style="width: 16px; height: 16px;"></i>
     </button>
   `;

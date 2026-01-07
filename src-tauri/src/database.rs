@@ -265,7 +265,7 @@ impl Database {
                     snippet(pdfs_fts, 2, '<mark>', '</mark>', '...', 64) as snippet
              FROM pdfs p
              INNER JOIN pdfs_fts ON p.id = pdfs_fts.rowid
-             WHERE pdfs_fts MATCH ?1"
+             WHERE pdfs_fts MATCH ?"
         );
 
         let mut params_vec: Vec<Box<dyn rusqlite::ToSql>> = vec![Box::new(optimized_query)];
