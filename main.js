@@ -478,20 +478,8 @@ function getFolderName(path) {
   return parts[parts.length - 1] || path;
 }
 
-// Toggle folder group expansion
-window.__toggleFolderGroup = (folderId) => {
-  const resultsDiv = document.getElementById(`results-${folderId}`);
-  const toggleIcon = document.getElementById(`toggle-${folderId}`);
-  
-  if (resultsDiv.classList.contains('collapsed')) {
-    resultsDiv.classList.remove('collapsed');
-    toggleIcon.setAttribute('data-lucide', 'chevron-down');
-  } else {
-    resultsDiv.classList.add('collapsed');
-    toggleIcon.setAttribute('data-lucide', 'chevron-right');
-  }
-  createIcons({ icons });
-};
+// Note: Folder group toggling is now handled directly in displayResults() with proper event listeners
+// This function is no longer needed as we removed inline onclick handlers
 
 // Render a single result item
 function renderResultItem(result) {
@@ -520,15 +508,8 @@ function hashString(str) {
   return Math.abs(hash).toString(36);
 }
 
-// Open PDF file
-window.__openPdf = async (path) => {
-  try {
-    await invoke('open_pdf', { path });
-  } catch (error) {
-    console.error('Error opening PDF:', error);
-    showError(`Failed to open PDF: ${error}`);
-  }
-};
+// Note: PDF opening is now handled directly in displayResults() with proper event listeners
+// This function is no longer needed as we removed inline onclick handlers
 
 // Utility functions
 function showEmptyState(type = 'default') {
@@ -551,7 +532,7 @@ function showEmptyState(type = 'default') {
       message: 'Add a folder containing PDFs to start building your searchable library.',
       action: {
         text: 'Add Folder',
-        onclick: 'document.getElementById("add-folder").click()'
+        handler: () => addFolderBtn.click()
       }
     },
     indexing: {
@@ -578,12 +559,20 @@ function showEmptyState(type = 'default') {
       <h3 class="empty-state-title">${state.title}</h3>
       ${state.message ? `<p class="empty-state-message">${state.message}</p>` : ''}
       ${state.action ? `
-        <button class="btn btn-primary" onclick="${state.action.onclick}">
+        <button class="btn btn-primary empty-state-action">
           ${state.action.text}
         </button>
       ` : ''}
     </div>
   `;
+  
+  // Add event listener for action button if present (no inline onclick)
+  if (state.action) {
+    const actionBtn = resultsContainer.querySelector('.empty-state-action');
+    if (actionBtn) {
+      actionBtn.addEventListener('click', state.action.handler);
+    }
+  }
   
   resultsCount.textContent = '';
   createIcons({ icons });
