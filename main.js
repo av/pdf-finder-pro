@@ -147,13 +147,16 @@ addFolderBtn.addEventListener('click', async () => {
 });
 
 // Index a folder
-async function indexFolder(folderPath) {
-  const loadingMsg = document.createElement('div');
-  loadingMsg.className = 'empty-state-small';
-  loadingMsg.innerHTML = '<p><i data-lucide="loader-2" class="loading-icon"></i> Indexing...</p>';
-  foldersList.innerHTML = '';
-  foldersList.appendChild(loadingMsg);
-  createIcons({ icons });
+async function indexFolder(folderPath, isReindex = false) {
+  // Show loading state
+  if (!isReindex) {
+    const loadingMsg = document.createElement('div');
+    loadingMsg.className = 'empty-state-small';
+    loadingMsg.innerHTML = '<p><i data-lucide="loader-2" class="loading-icon"></i> Indexing...</p>';
+    foldersList.innerHTML = '';
+    foldersList.appendChild(loadingMsg);
+    createIcons({ icons });
+  }
 
   try {
     const result = await invoke('index_pdfs', { folderPath });
@@ -211,7 +214,12 @@ async function loadIndexedFolders() {
       refreshBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         if (confirm(`Re-index folder: ${folder.path}?`)) {
-          await indexFolder(folder.path);
+          // Disable button and show loading state
+          refreshBtn.disabled = true;
+          refreshBtn.innerHTML = '<i data-lucide="loader-2" class="loading-icon"></i>';
+          createIcons({ icons });
+          
+          await indexFolder(folder.path, true);
           await loadIndexedFolders();
         }
       });
@@ -272,6 +280,16 @@ async function performSearch() {
     if (minSizeValue !== null && maxSizeValue !== null && minSizeValue > maxSizeValue) {
       showError('Minimum size cannot be greater than maximum size');
       return;
+    }
+    
+    // Validate date range
+    if (dateFromInput.value && dateToInput.value) {
+      const dateFrom = new Date(dateFromInput.value);
+      const dateTo = new Date(dateToInput.value);
+      if (dateFrom > dateTo) {
+        showError('Start date cannot be after end date');
+        return;
+      }
     }
     
     const filters = {
@@ -376,7 +394,13 @@ function displayResults(results) {
     // 'relevance' is default ordering from FTS5
   }
 
-  resultsCount.textContent = `${sortedResults.length} result${sortedResults.length !== 1 ? 's' : ''}`;
+  // Show count and warn if limit reached
+  const MAX_RESULTS = 100;
+  let countText = `${sortedResults.length} result${sortedResults.length !== 1 ? 's' : ''}`;
+  if (sortedResults.length >= MAX_RESULTS) {
+    countText += ` (showing top ${MAX_RESULTS})`;
+  }
+  resultsCount.textContent = countText;
 
   // Group results by folder
   const groupedResults = groupByFolder(sortedResults);
@@ -642,7 +666,8 @@ function getFileName(path) {
 function formatFileSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
-  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
 }
 
 function formatDate(timestamp) {
