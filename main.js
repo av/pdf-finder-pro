@@ -274,6 +274,16 @@ async function performSearch() {
       return;
     }
     
+    // Validate date range
+    if (dateFromInput.value && dateToInput.value) {
+      const dateFrom = new Date(dateFromInput.value);
+      const dateTo = new Date(dateToInput.value);
+      if (dateFrom > dateTo) {
+        showError('Start date cannot be after end date');
+        return;
+      }
+    }
+    
     const filters = {
       min_size: minSizeValue ? minSizeValue * 1024 : null,
       max_size: maxSizeValue ? maxSizeValue * 1024 : null,
@@ -376,7 +386,13 @@ function displayResults(results) {
     // 'relevance' is default ordering from FTS5
   }
 
-  resultsCount.textContent = `${sortedResults.length} result${sortedResults.length !== 1 ? 's' : ''}`;
+  // Show count and warn if limit reached
+  const MAX_RESULTS = 100;
+  let countText = `${sortedResults.length} result${sortedResults.length !== 1 ? 's' : ''}`;
+  if (sortedResults.length >= MAX_RESULTS) {
+    countText += ` (showing top ${MAX_RESULTS})`;
+  }
+  resultsCount.textContent = countText;
 
   // Group results by folder
   const groupedResults = groupByFolder(sortedResults);
