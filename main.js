@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { createIcons, icons } from 'lucide';
+import { initLicenseUI, shouldLimitResults, showLicenseActivationDialog } from './license-ui.js';
 
 let searchTimeout;
 let currentResults = [];
@@ -410,18 +411,45 @@ function displayResults(results) {
     // 'relevance' is default ordering from FTS5
   }
 
+  // Check if results should be limited (trial expired)
+  const limitResults = shouldLimitResults();
+  const originalCount = sortedResults.length;
+  if (limitResults && sortedResults.length > 10) {
+    sortedResults = sortedResults.slice(0, 10);
+  }
+
   // Show count and warn if limit reached
   const MAX_RESULTS = 100;
   let countText = `${sortedResults.length} result${sortedResults.length !== 1 ? 's' : ''}`;
-  if (sortedResults.length >= MAX_RESULTS) {
+  if (limitResults && originalCount > 10) {
+    countText = `Showing 10 of ${originalCount} results`;
+  } else if (!limitResults && originalCount >= MAX_RESULTS) {
     countText += ` (showing top ${MAX_RESULTS})`;
   }
   resultsCount.textContent = countText;
-
-  // Group results by folder
-  const groupedResults = groupByFolder(sortedResults);
-
-  resultsContainer.innerHTML = '';
+  
+  // Add license notice if limited
+  if (limitResults && originalCount > 10) {
+    const notice = document.createElement('div');
+    notice.className = 'license-limit-notice';
+    notice.innerHTML = `
+      <i data-lucide="alert-circle"></i>
+      <span>Search results limited to 10. <a href="#" id="buy-to-unlock">Purchase a license</a> to see all ${originalCount} results.</span>
+    `;
+    resultsContainer.innerHTML = '';
+    resultsContainer.appendChild(notice);
+    
+    // Re-render icons
+    createIcons({ icons });
+    
+    // Add click handler for purchase link
+    document.getElementById('buy-to-unlock')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      showLicenseActivationDialog();
+    });
+  } else {
+    resultsContainer.innerHTML = '';
+  }
 
   Object.entries(groupedResults).forEach(([folder, items]) => {
     // Use a hash of the folder path for IDs to avoid collisions
@@ -758,6 +786,9 @@ function highlightSnippet(snippet, query) {
 
 // Initialize
 async function init() {
+  // Initialize license UI first
+  await initLicenseUI();
+  
   await loadIndexedFolders();
 
   const count = await invoke('get_index_stats').catch(() => 0);
@@ -769,5 +800,9 @@ async function init() {
 
   createIcons({ icons });
 }
+
+// Make createIcons and icons available globally for license-ui.js
+window.createIcons = createIcons;
+window.icons = icons;
 
 init();

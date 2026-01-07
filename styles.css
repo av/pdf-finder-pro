@@ -1452,3 +1452,361 @@ kbd {
     padding: var(--space-xl);
   }
 }
+
+/* ============================================
+   License UI Components
+   ============================================ */
+
+/* Trial Banner */
+.trial-banner {
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: white;
+  padding: var(--space-md) var(--space-xl);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.trial-banner .trial-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.95rem;
+}
+
+.trial-banner .trial-info i {
+  width: 20px;
+  height: 20px;
+}
+
+.trial-banner .btn-small {
+  padding: var(--space-xs) var(--space-md);
+  font-size: 0.9rem;
+  background: white;
+  color: var(--accent-primary);
+  border: none;
+  font-weight: 600;
+}
+
+.trial-banner .btn-small:hover {
+  background: var(--surface);
+  transform: translateY(-1px);
+}
+
+/* License Modals */
+.license-modal .modal {
+  max-width: 500px;
+  width: 90%;
+}
+
+.license-welcome-modal .modal-content {
+  text-align: center;
+}
+
+.welcome-message {
+  font-size: 1.1rem;
+  margin-bottom: var(--space-xl);
+  line-height: 1.6;
+}
+
+.welcome-features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+  text-align: left;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--surface);
+  border-radius: var(--radius-md);
+}
+
+.feature-item .feature-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.welcome-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.welcome-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.welcome-note {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+/* License Activation Modal */
+.license-activation-modal .license-input-group {
+  margin-bottom: var(--space-xl);
+}
+
+.license-input-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+  color: var(--text-primary);
+}
+
+.license-input-group input {
+  width: 100%;
+  padding: var(--space-md);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+  letter-spacing: 0.5px;
+  transition: border-color 0.2s;
+}
+
+.license-input-group input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+}
+
+.input-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.input-hint i {
+  width: 16px;
+  height: 16px;
+}
+
+.license-actions {
+  display: flex;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.license-actions .btn {
+  flex: 1;
+}
+
+.activation-message {
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  margin-bottom: var(--space-lg);
+  display: none;
+}
+
+.activation-message.success {
+  display: block;
+  background: rgba(34, 197, 94, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.activation-message.error {
+  display: block;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.license-footer {
+  text-align: center;
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border);
+}
+
+.license-footer p {
+  margin-bottom: var(--space-sm);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.buy-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--accent-primary);
+  text-decoration: none;
+  font-weight: 600;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  transition: background-color 0.2s;
+}
+
+.buy-link:hover {
+  background-color: var(--surface);
+}
+
+.buy-link i {
+  width: 18px;
+  height: 18px;
+}
+
+.offline-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+}
+
+.offline-notice i {
+  width: 14px;
+  height: 14px;
+}
+
+/* License Expiration Modal */
+.license-expiration-modal .expiration-message {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-bottom: var(--space-xl);
+}
+
+.limitation-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: var(--radius-md);
+  color: #d97706;
+  margin-bottom: var(--space-xl);
+}
+
+.limitation-notice i {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.expiration-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.expiration-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* License Limit Notice in Results */
+.license-limit-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-lg);
+  color: var(--text-primary);
+}
+
+.license-limit-notice i {
+  width: 24px;
+  height: 24px;
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.license-limit-notice a {
+  color: var(--accent-primary);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.license-limit-notice a:hover {
+  color: var(--accent-secondary);
+}
+
+/* Toast Notifications */
+.toast {
+  position: fixed;
+  bottom: var(--space-xl);
+  right: var(--space-xl);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s ease-out;
+  z-index: 10000;
+  max-width: 400px;
+}
+
+.toast.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.toast-success {
+  border-left: 4px solid #22c55e;
+}
+
+.toast-error {
+  border-left: 4px solid #ef4444;
+}
+
+.toast-info {
+  border-left: 4px solid var(--accent-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .trial-banner {
+    flex-direction: column;
+    gap: var(--space-md);
+    text-align: center;
+  }
+  
+  .license-actions {
+    flex-direction: column;
+  }
+  
+  .license-limit-notice {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .toast {
+    bottom: var(--space-md);
+    right: var(--space-md);
+    left: var(--space-md);
+    max-width: none;
+  }
+}
