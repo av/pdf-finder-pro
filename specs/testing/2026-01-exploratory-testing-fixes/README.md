@@ -53,6 +53,7 @@ Perform comprehensive exploratory testing to:
 ### Documentation
 
 See detailed documentation in this folder:
+- [**FINAL_SUMMARY.md**](./FINAL_SUMMARY.md) - 📊 Complete overview of all testing (START HERE)
 - [TESTING_REPORT.md](./TESTING_REPORT.md) - Complete testing report (Round 1)
 - [SECURITY_FIXES.md](./SECURITY_FIXES.md) - Detailed security fix documentation (Round 1)
 - [CHANGES_SUMMARY.md](./CHANGES_SUMMARY.md) - Summary of all changes (Round 1)
