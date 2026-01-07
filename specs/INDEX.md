@@ -73,6 +73,33 @@ Complete index of all specifications in PDF Finder Pro.
 **Literature References**: 6 authoritative books  
 **Impact**: High - production-grade performance and reliability
 
+### Testing: Exploratory Testing Fixes (January 2026)
+**Status**: ✅ Completed  
+**Location**: `testing/2026-01-exploratory-testing-fixes/`  
+**Description**: Comprehensive exploratory testing identifying and fixing security vulnerabilities and code quality issues.
+
+**Documents**:
+- [📋 Overview](testing/2026-01-exploratory-testing-fixes/README.md) - Complete specification and summary
+- [🔬 Testing Report](testing/2026-01-exploratory-testing-fixes/TESTING_REPORT.md) - Detailed testing methodology and results
+- [🔒 Security Fixes](testing/2026-01-exploratory-testing-fixes/SECURITY_FIXES.md) - Security vulnerability documentation
+- [📝 Changes Summary](testing/2026-01-exploratory-testing-fixes/CHANGES_SUMMARY.md) - Summary of all changes
+
+**Key Improvements**:
+- Fixed 4 critical security vulnerabilities (XSS, ReDoS, path traversal)
+- Added comprehensive input validation
+- Removed all inline event handlers
+- Improved error handling and messaging
+- Organized documentation into specs/ structure
+- Enhanced code quality and maintainability
+
+**Security Impact**:
+- Before: HIGH risk (4 critical vulnerabilities)
+- After: LOW risk (all critical issues resolved)
+
+**Timeline**: Completed 2026-01-07  
+**Issues Fixed**: 14 (4 critical, 4 medium, 4 low, 2 UX)  
+**Impact**: High - significantly improved security posture
+
 ---
 
 ## 📁 By Category
@@ -96,7 +123,7 @@ Complete index of all specifications in PDF Finder Pro.
 - [Indexing Optimizations - Jan 2026](performance/2026-01-indexing-optimizations/) - ✅ Implemented
 
 ### Testing
-*No testing specs yet*
+- [Exploratory Testing Fixes - Jan 2026](testing/2026-01-exploratory-testing-fixes/) - ✅ Completed
 
 ### Deployment
 *No deployment specs yet*
@@ -116,6 +143,7 @@ Complete index of all specifications in PDF Finder Pro.
 
 ### ✔️ Implemented
 - [Performance: Indexing Optimizations (Jan 2026)](performance/2026-01-indexing-optimizations/)
+- [Testing: Exploratory Testing Fixes (Jan 2026)](testing/2026-01-exploratory-testing-fixes/)
 
 ### 🗄️ Archived
 *None yet*
@@ -132,12 +160,13 @@ Complete index of all specifications in PDF Finder Pro.
 
 ### Technical Design
 - [Indexing Optimizations (Jan 2026)](performance/2026-01-indexing-optimizations/) - Performance improvements
+- [Exploratory Testing Fixes (Jan 2026)](testing/2026-01-exploratory-testing-fixes/) - Security and quality improvements
 
 ### API Documentation
 *None yet*
 
-### Security
-*None yet*
+### Security & Testing
+- [Exploratory Testing Fixes (Jan 2026)](testing/2026-01-exploratory-testing-fixes/) - Security fixes and testing
 
 ---
 
@@ -149,6 +178,11 @@ Complete index of all specifications in PDF Finder Pro.
   - Incremental indexing
   - SQLite optimizations
   - BM25 ranking
+- **January 7**: Exploratory Testing completed
+  - Security vulnerability fixes (4 critical)
+  - Code quality improvements
+  - Documentation organization
+  - Input validation enhancements
 - **January**: UX Improvements specification created
   - Week 1: Foundation & quick wins
   - Week 2: Core features (dark mode, search history)
@@ -220,13 +254,13 @@ See [README.md](README.md) for detailed instructions.
 
 ## 📊 Statistics
 
-- **Total Specs**: 2
+- **Total Specs**: 3
 - **Active Projects**: 1
-- **Completed**: 1
-- **Categories**: 8 (2 in use)
-- **Total Documents**: 11
-- **Total Size**: ~120 KB
-- **Total Lines**: ~5,600
+- **Completed**: 2
+- **Categories**: 8 (3 in use)
+- **Total Documents**: 15
+- **Total Size**: ~145 KB
+- **Total Lines**: ~6,800
 
 ---
 
