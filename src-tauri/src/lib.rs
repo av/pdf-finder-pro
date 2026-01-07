@@ -90,7 +90,29 @@ async fn search_pdfs(
 }
 
 #[tauri::command]
-async fn open_pdf(path: String) -> Result<(), String> {
+async fn open_pdf(path: String, state: State<'_, AppState>) -> Result<(), String> {
+    // Validate that the PDF exists in our database before opening
+    let db_lock = state.db.lock().unwrap();
+    if let Some(db) = db_lock.as_ref() {
+        // Check if this path is in our indexed PDFs
+        let is_indexed = db.is_pdf_indexed(&path)
+            .map_err(|e| format!("Failed to validate PDF: {}", e))?;
+        
+        if !is_indexed {
+            return Err("This file is not in the indexed database".to_string());
+        }
+    }
+    
+    // Validate file exists and is a PDF
+    let file_path = std::path::Path::new(&path);
+    if !file_path.exists() {
+        return Err("File does not exist or has been moved".to_string());
+    }
+    
+    if !file_path.extension().and_then(|s| s.to_str()).map(|s| s.eq_ignore_ascii_case("pdf")).unwrap_or(false) {
+        return Err("File is not a PDF".to_string());
+    }
+    
     #[cfg(target_os = "windows")]
     {
         std::process::Command::new("cmd")
@@ -157,6 +179,14 @@ fn get_db_path() -> anyhow::Result<PathBuf> {
 }
 
 fn transform_query(query: &str) -> String {
+    // Limit query length to prevent abuse
+    const MAX_QUERY_LENGTH: usize = 1000;
+    let query = if query.len() > MAX_QUERY_LENGTH {
+        &query[..MAX_QUERY_LENGTH]
+    } else {
+        query
+    };
+    
     let tokens: Vec<String> = query
         .split_whitespace()
         .map(|token| {
@@ -169,11 +199,20 @@ fn transform_query(query: &str) -> String {
         })
         .collect();
 
+    // Limit number of terms to prevent query explosion
+    const MAX_TOKENS: usize = 50;
+    let tokens = if tokens.len() > MAX_TOKENS {
+        &tokens[..MAX_TOKENS]
+    } else {
+        &tokens[..]
+    };
+
     let has_boolean_operator = tokens.iter().any(|t| t == "AND" || t == "OR" || t == "NOT");
 
     if has_boolean_operator {
         tokens.join(" ")
     } else if tokens.len() > 1 {
+        // Limit OR expansion to prevent performance issues
         tokens.join(" OR ")
     } else {
         tokens.join(" ")
