@@ -8,9 +8,59 @@ Complete index of all specifications in PDF Finder Pro.
 
 ## 🎯 Active Projects
 
+### Payment & License System (January 2026)
+**Status**: ✅ Approved for Implementation
+**Location**: `features/2026-01-lemon-squeezy-payment/`
+**Description**: Implementation of Lemon Squeezy payment gateway with **completely offline license validation** (zero backend costs).
+
+**Documents**:
+- [📋 Complete Specification](features/2026-01-lemon-squeezy-payment/README.md) - Full technical specification (revised: offline-first)
+- [✅ Implementation Checklist](features/2026-01-lemon-squeezy-payment/implementation-checklist.md) - Step-by-step implementation guide
+- [⚡ Quick Reference](features/2026-01-lemon-squeezy-payment/QUICK_REFERENCE.md) - Executive summary
+
+**Key Features**:
+- Lemon Squeezy payment integration ($5 one-time purchase)
+- 14-day free trial with full functionality
+- **Completely offline license validation** (cryptographic signatures)
+- **Zero backend service** (no API, no servers, no ongoing costs)
+- **Works forever without internet** (no revalidation needed)
+- Unlimited device activations (user convenience over DRM)
+- Simple license key format (self-validating)
+- Cross-platform (Windows, macOS, Linux)
+
+**Timeline**: 2.5-3 weeks (26-36 hours, reduced from 46-62)
+**Priority**: P0 - Critical for revenue generation
+**Impact**: High - enables sustainable development with **$0/month costs**
+
+**Revision**: Updated 2026-01-07 to remove all backend dependencies per user feedback.
+
+---
+
+### Marketing & Distribution (January 2026)
+**Status**: ✅ Approved for Implementation
+**Location**: `marketing/2026-01-revenue-generation/`
+**Description**: Realistic distribution strategy for closed-source desktop app with 14-day free trial.
+
+**Documents**:
+- [📋 Marketing Plan](marketing/2026-01-revenue-generation/README.md) - Complete strategy
+
+**Approach**:
+- 14-day free trial (full features, no credit card)
+- Software directories (AlternativeTo, SourceForge)
+- Test Google Ads with $200 budget
+- Direct sales to small orgs (universities, law firms)
+- No viral expectations
+
+**Timeline**: 4 weeks validation
+**Budget**: $200 ads, 40 hours
+**Success Metric**: 10+ purchases in 2 months
+**Impact**: Fast validation of product-market fit
+
+---
+
 ### UX Improvements (January 2026)
-**Status**: ✅ Approved for Implementation  
-**Location**: `ux-improvements/`  
+**Status**: ✅ Approved for Implementation
+**Location**: `ux-improvements/`
 **Description**: Comprehensive UI/UX enhancement plan based on "Refactoring UI" and "Interface" design principles.
 
 **Documents**:
@@ -32,8 +82,8 @@ Complete index of all specifications in PDF Finder Pro.
 - Context menu on results
 - Onboarding flow
 
-**Timeline**: 4 weeks (74-90 hours)  
-**Priority**: P0-P3 categorized  
+**Timeline**: 4 weeks (74-90 hours)
+**Priority**: P0-P3 categorized
 **Impact**: High - transforms app from "good" to "delightful"
 
 ---
@@ -41,8 +91,8 @@ Complete index of all specifications in PDF Finder Pro.
 ## ✅ Completed Projects
 
 ### Performance: Indexing Optimizations (January 2026)
-**Status**: ✅ Implemented  
-**Location**: `performance/2026-01-indexing-optimizations/`  
+**Status**: ✅ Implemented
+**Location**: `performance/2026-01-indexing-optimizations/`
 **Description**: Comprehensive performance improvements to PDF indexing system based on systems performance and information retrieval literature.
 
 **Documents**:
@@ -69,13 +119,13 @@ Complete index of all specifications in PDF Finder Pro.
 - Re-indexing (10% changed): 10x speedup
 - Filtered queries: 10-100x speedup
 
-**Timeline**: Completed 2026-01-05  
-**Literature References**: 6 authoritative books  
+**Timeline**: Completed 2026-01-05
+**Literature References**: 6 authoritative books
 **Impact**: High - production-grade performance and reliability
 
 ### Testing: Exploratory Testing Fixes (January 2026)
-**Status**: ✅ Completed  
-**Location**: `testing/2026-01-exploratory-testing-fixes/`  
+**Status**: ✅ Completed
+**Location**: `testing/2026-01-exploratory-testing-fixes/`
 **Description**: Comprehensive exploratory testing identifying and fixing security vulnerabilities and code quality issues.
 
 **Documents**:
@@ -96,19 +146,22 @@ Complete index of all specifications in PDF Finder Pro.
 - Before: HIGH risk (4 critical vulnerabilities)
 - After: LOW risk (all critical issues resolved)
 
-**Timeline**: Completed 2026-01-07  
-**Issues Fixed**: 14 (4 critical, 4 medium, 4 low, 2 UX)  
+**Timeline**: Completed 2026-01-07
+**Issues Fixed**: 14 (4 critical, 4 medium, 4 low, 2 UX)
 **Impact**: High - significantly improved security posture
 
 ---
 
 ## 📁 By Category
 
+### Marketing
+- [Distribution Strategy - Jan 2026](marketing/2026-01-revenue-generation/) - ✅ Approved
+
 ### UX Improvements
 - [UX Improvements - Jan 2026](ux-improvements/) - ✅ Approved
 
 ### Features
-*No feature specs yet*
+- [Payment & License System - Jan 2026](features/2026-01-lemon-squeezy-payment/) - ✅ Approved
 
 ### Architecture
 *No architecture specs yet*
@@ -135,6 +188,8 @@ Complete index of all specifications in PDF Finder Pro.
 ## 📊 By Status
 
 ### ✅ Approved
+- [Payment & License System (Jan 2026)](features/2026-01-lemon-squeezy-payment/)
+- [Marketing & Distribution (Jan 2026)](marketing/2026-01-revenue-generation/)
 - [UX Improvements (Jan 2026)](ux-improvements/)
 
 ### 🚧 In Progress
@@ -156,11 +211,14 @@ Complete index of all specifications in PDF Finder Pro.
 
 ## 🔍 By Type
 
+### Marketing & Business
+- [Distribution Strategy (Jan 2026)](marketing/2026-01-revenue-generation/) - Closed-source app distribution
+
 ### UI/UX Design
 - [UX Improvements (Jan 2026)](ux-improvements/) - Comprehensive UX overhaul
 
 ### Feature Specifications
-*None yet*
+- [Payment & License System (Jan 2026)](features/2026-01-lemon-squeezy-payment/) - Lemon Squeezy integration
 
 ### Technical Design
 - [Indexing Optimizations (Jan 2026)](performance/2026-01-indexing-optimizations/) - Performance improvements
@@ -184,6 +242,16 @@ Complete index of all specifications in PDF Finder Pro.
   - Incremental indexing
   - SQLite optimizations
   - BM25 ranking
+- **January 7**: Payment & License System specification created
+  - Week 1: Lemon Squeezy setup & backend
+  - Week 2-3: License validation (Rust)
+  - Week 4: Frontend UI
+  - Week 5: Integration & testing
+- **January 7**: Marketing & Distribution spec created
+  - 14-day free trial implementation
+  - Software directory listings
+  - Test Google Ads ($200 budget)
+  - Direct sales to small organizations
 - **January 7**: Exploratory Testing completed
   - Security vulnerability fixes (4 critical)
   - Code quality improvements
@@ -218,17 +286,19 @@ Complete index of all specifications in PDF Finder Pro.
 ## 🎨 Quick Links
 
 ### Most Referenced Specs
-1. [UX Improvements Summary](ux-improvements/UX_IMPROVEMENTS_SUMMARY.md) - Quick overview
-2. [Performance Optimizations](performance/2026-01-indexing-optimizations/README.md) - Performance improvements
-3. [Quick Visual Examples](ux-improvements/QUICK_VISUAL_EXAMPLES.md) - Code samples
-4. [Implementation Roadmap](ux-improvements/IMPLEMENTATION_ROADMAP.md) - Sprint plan
+1. [Payment & License System](features/2026-01-lemon-squeezy-payment/README.md) - Revenue implementation
+2. [Marketing Plan](marketing/2026-01-revenue-generation/README.md) - Distribution strategy
+3. [UX Improvements Summary](ux-improvements/UX_IMPROVEMENTS_SUMMARY.md) - Quick overview
+4. [Performance Optimizations](performance/2026-01-indexing-optimizations/README.md) - Performance improvements
 
-### For Developers
+### For Solo Developers
+- [Payment Implementation Checklist](features/2026-01-lemon-squeezy-payment/implementation-checklist.md) - Step-by-step guide
+- [Marketing Plan](marketing/2026-01-revenue-generation/README.md) - What to do now
 - [Quick Visual Examples](ux-improvements/QUICK_VISUAL_EXAMPLES.md) - Copy-paste code
 - [Performance Best Practices](performance/2026-01-indexing-optimizations/best-practices.md) - Optimization patterns
-- [Implementation Roadmap](ux-improvements/IMPLEMENTATION_ROADMAP.md) - Task breakdown
 
-### For Product Managers
+### For Product/Business
+- [Marketing Plan](marketing/2026-01-revenue-generation/README.md) - Distribution strategy
 - [UX Improvements Summary](ux-improvements/UX_IMPROVEMENTS_SUMMARY.md) - Priorities
 - [Project Overview](ux-improvements/README_UX_PROJECT.md) - Success metrics
 
@@ -269,26 +339,28 @@ See [README.md](README.md) for detailed instructions.
 
 ## 📊 Statistics
 
-- **Total Specs**: 3
-- **Active Projects**: 1
-- **Completed**: 2
-- **Categories**: 8 (3 in use)
+- **Total Specs**: 4
+- **Active Projects**: 3 (Payment, Marketing, UX)
+- **Completed**: 1 (Performance)
+- **Categories**: 8 (4 in use)
 - **Total Documents**: 15
-- **Total Size**: ~145 KB
-- **Total Lines**: ~6,800
+- **Total Size**: ~180 KB
+- **Total Lines**: ~7,500
 
 ---
 
 ## 🔮 Upcoming Specs
 
 ### Planned for Q1 2026
-- None scheduled yet
+- Marketing execution (Week 3-4: Launch phase)
+- UX improvements implementation (after marketing launch)
 
 ### Under Consideration
+- Auto-update system
 - Search History Feature spec
 - Folder Management Enhancement spec
 - PDF Preview Feature spec
-- Cloud Sync Integration spec
+- Volume licensing for teams
 - Mobile App spec
 
 ---

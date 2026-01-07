@@ -8,6 +8,7 @@ let currentResults = [];
 // DOM Elements
 const sidebar = document.getElementById('sidebar');
 const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+const openSidebarBtn = document.getElementById('open-sidebar');
 const showHelpBtn = document.getElementById('show-help');
 const closeHelpBtn = document.getElementById('close-help');
 const helpModal = document.getElementById('help-modal');
@@ -38,6 +39,18 @@ toggleSidebarBtn.addEventListener('click', () => {
     createIcons({ icons });
   }
 });
+
+if (openSidebarBtn) {
+  openSidebarBtn.addEventListener('click', () => {
+    sidebar.classList.remove('collapsed');
+    // Sync the icon of the main toggle button
+    const icon = toggleSidebarBtn.querySelector('i');
+    if (icon) {
+      icon.setAttribute('data-lucide', 'panel-left-close');
+      createIcons({ icons });
+    }
+  });
+}
 
 // Help modal
 showHelpBtn.addEventListener('click', () => {
@@ -162,7 +175,7 @@ async function indexFolder(folderPath, isReindex = false) {
 
   try {
     const result = await invoke('index_pdfs', { folderPath });
-    
+
     // Show success toast
     showToast(`Indexed ${result.count} PDFs in ${result.duration}ms`, 'success');
   } catch (error) {
@@ -175,23 +188,23 @@ async function indexFolder(folderPath, isReindex = false) {
 async function loadIndexedFolders() {
   try {
     const folders = await invoke('get_indexed_folders');
-    
+
     if (!folders || folders.length === 0) {
       foldersList.innerHTML = '<div class="empty-state-small"><p>No folders yet</p></div>';
       return;
     }
 
     foldersList.innerHTML = '';
-    
+
     folders.forEach(folder => {
       const folderName = folder.path.split(/[\\/]/).pop() || folder.path;
-      
+
       const folderItem = document.createElement('div');
       folderItem.className = 'folder-item';
       folderItem.setAttribute('data-path', folder.path);
       folderItem.setAttribute('role', 'listitem');
       folderItem.title = folder.path;
-      
+
       folderItem.innerHTML = `
         <div class="folder-info">
           <div class="folder-path-text">${escapeHtml(folderName)}</div>
@@ -209,11 +222,11 @@ async function loadIndexedFolders() {
           </button>
         </div>
       `;
-      
+
       // Add event listeners instead of inline onclick
       const refreshBtn = folderItem.querySelector('.refresh');
       const deleteBtn = folderItem.querySelector('.delete');
-      
+
       refreshBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         if (confirm(`Re-index folder: ${folder.path}?`)) {
@@ -221,12 +234,12 @@ async function loadIndexedFolders() {
           refreshBtn.disabled = true;
           refreshBtn.innerHTML = '<i data-lucide="loader-2" class="loading-icon"></i>';
           createIcons({ icons });
-          
+
           await indexFolder(folder.path, true);
           await loadIndexedFolders();
         }
       });
-      
+
       deleteBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         if (confirm(`Remove folder and all its indexed PDFs: ${folder.path}?`)) {
@@ -234,7 +247,7 @@ async function loadIndexedFolders() {
             await invoke('remove_indexed_folder', { folderPath: folder.path });
             showToast('Folder removed successfully', 'success');
             await loadIndexedFolders();
-            
+
             if (currentResults.length > 0) {
               performSearch();
             }
@@ -244,10 +257,10 @@ async function loadIndexedFolders() {
           }
         }
       });
-      
+
       foldersList.appendChild(folderItem);
     });
-    
+
     createIcons({ icons });
   } catch (error) {
     console.error('Error loading folders:', error);
@@ -270,7 +283,7 @@ async function performSearch() {
     // Validate and sanitize filter inputs
     const minSizeValue = minSizeInput.value ? parseInt(minSizeInput.value, 10) : null;
     const maxSizeValue = maxSizeInput.value ? parseInt(maxSizeInput.value, 10) : null;
-    
+
     // Validate filter values
     if (minSizeValue !== null && (isNaN(minSizeValue) || minSizeValue < 0)) {
       showError('Minimum size must be a positive number');
@@ -284,7 +297,7 @@ async function performSearch() {
       showError('Minimum size cannot be greater than maximum size');
       return;
     }
-    
+
     // Validate date range
     if (dateFromInput.value && dateToInput.value) {
       const dateFrom = new Date(dateFromInput.value);
@@ -294,7 +307,7 @@ async function performSearch() {
         return;
       }
     }
-    
+
     const filters = {
       min_size: minSizeValue ? minSizeValue * 1024 : null,
       max_size: maxSizeValue ? maxSizeValue * 1024 : null,
@@ -380,7 +393,7 @@ function displayResults(results) {
   // Sort results based on selection
   const sortBy = sortBySelect.value;
   let sortedResults = [...results];
-  
+
   switch (sortBy) {
     case 'date-desc':
       sortedResults.sort((a, b) => b.modified - a.modified);
@@ -407,16 +420,16 @@ function displayResults(results) {
 
   // Group results by folder
   const groupedResults = groupByFolder(sortedResults);
-  
+
   resultsContainer.innerHTML = '';
-  
+
   Object.entries(groupedResults).forEach(([folder, items]) => {
     // Use a hash of the folder path for IDs to avoid collisions
     const folderId = 'folder-' + hashString(folder);
-    
+
     const folderGroup = document.createElement('div');
     folderGroup.className = 'folder-group';
-    
+
     const header = document.createElement('div');
     header.className = 'folder-group-header';
     header.setAttribute('role', 'button');
@@ -428,18 +441,18 @@ function displayResults(results) {
       <span class="folder-group-title"><i data-lucide="folder" class="inline-icon"></i> ${escapeHtml(getFolderName(folder))}</span>
       <span class="folder-group-count">${items.length} result${items.length !== 1 ? 's' : ''}</span>
     `;
-    
+
     const resultsDiv = document.createElement('div');
     resultsDiv.className = 'folder-group-results';
     resultsDiv.id = `results-${folderId}`;
     resultsDiv.setAttribute('role', 'list');
     resultsDiv.innerHTML = items.map(result => renderResultItem(result)).join('');
-    
+
     // Add click handler for toggling
     header.addEventListener('click', () => {
       const toggleIcon = document.getElementById(`toggle-${folderId}`);
       const isCollapsed = resultsDiv.classList.contains('collapsed');
-      
+
       if (isCollapsed) {
         resultsDiv.classList.remove('collapsed');
         header.setAttribute('aria-expanded', 'true');
@@ -451,7 +464,7 @@ function displayResults(results) {
       }
       createIcons({ icons });
     });
-    
+
     // Add keyboard handler for Enter and Space
     header.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -459,12 +472,12 @@ function displayResults(results) {
         header.click();
       }
     });
-    
+
     folderGroup.appendChild(header);
     folderGroup.appendChild(resultsDiv);
     resultsContainer.appendChild(folderGroup);
   });
-  
+
   // Add click handlers for result items
   resultsContainer.querySelectorAll('.result-item').forEach(item => {
     const path = item.getAttribute('data-path');
@@ -493,7 +506,7 @@ function displayResults(results) {
       });
     }
   });
-  
+
   createIcons({ icons });
 }
 
@@ -505,7 +518,7 @@ function showSkeletonLoader(count = 3) {
       <div class="skeleton-text short"></div>
     </div>
   `).join('');
-  
+
   resultsContainer.innerHTML = `<div class="skeleton-loader">${skeletons}</div>`;
   resultsCount.textContent = '';
 }
@@ -513,18 +526,18 @@ function showSkeletonLoader(count = 3) {
 // Group results by parent folder
 function groupByFolder(results) {
   const grouped = {};
-  
+
   results.forEach(result => {
     // Extract folder path (everything except filename)
     const pathParts = result.path.split(/[\\/]/);
     const folder = pathParts.slice(0, -1).join('/') || '/';
-    
+
     if (!grouped[folder]) {
       grouped[folder] = [];
     }
     grouped[folder].push(result);
   });
-  
+
   return grouped;
 }
 
@@ -609,7 +622,7 @@ function showEmptyState(type = 'default') {
   };
 
   const state = states[type] || states.default;
-  
+
   resultsContainer.innerHTML = `
     <div class="empty-state">
       <i data-lucide="${state.icon}" class="empty-state-icon ${state.iconClass || ''}"></i>
@@ -622,7 +635,7 @@ function showEmptyState(type = 'default') {
       ` : ''}
     </div>
   `;
-  
+
   // Add event listener for action button if present (no inline onclick)
   if (state.action) {
     const actionBtn = resultsContainer.querySelector('.empty-state-action');
@@ -630,7 +643,7 @@ function showEmptyState(type = 'default') {
       actionBtn.addEventListener('click', state.action.handler);
     }
   }
-  
+
   resultsCount.textContent = '';
   createIcons({ icons });
 }
@@ -658,7 +671,7 @@ function showToast(message, type = 'info', duration = 5000) {
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
   toast.className = `toast ${validType}`;
-  
+
   toast.innerHTML = `
     <i data-lucide="${iconName}" class="toast-icon"></i>
     <div class="toast-content">
@@ -668,20 +681,20 @@ function showToast(message, type = 'info', duration = 5000) {
       <i data-lucide="x" style="width: 16px; height: 16px;"></i>
     </button>
   `;
-  
+
   container.appendChild(toast);
   createIcons({ icons: icons });
-  
+
   // Close button
   toast.querySelector('.toast-close').addEventListener('click', () => {
     removeToast(toast);
   });
-  
+
   // Auto-dismiss
   if (duration > 0) {
     setTimeout(() => removeToast(toast), duration);
   }
-  
+
   return toast;
 }
 
@@ -724,7 +737,7 @@ function formatTimestamp(timestamp) {
   if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
   if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
   if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-  
+
   return date.toLocaleDateString();
 }
 
@@ -736,9 +749,9 @@ function highlightSnippet(snippet, query) {
   // Replace <mark> temporarily, escape everything, then restore marks
   const marked = snippet.replace(/<mark>/g, '___MARK_START___')
                         .replace(/<\/mark>/g, '___MARK_END___');
-  
+
   const escaped = escapeHtml(marked);
-  
+
   return escaped.replace(/___MARK_START___/g, '<mark>')
                 .replace(/___MARK_END___/g, '</mark>');
 }
@@ -746,14 +759,14 @@ function highlightSnippet(snippet, query) {
 // Initialize
 async function init() {
   await loadIndexedFolders();
-  
+
   const count = await invoke('get_index_stats').catch(() => 0);
   if (count > 0) {
     showEmptyState('default');
   } else {
     showEmptyState('noFolders');
   }
-  
+
   createIcons({ icons });
 }
 
