@@ -8,6 +8,34 @@ Complete index of all specifications in PDF Finder Pro.
 
 ## 🎯 Active Projects
 
+### Payment & License System (January 2026)
+**Status**: ✅ Approved for Implementation  
+**Location**: `features/2026-01-lemon-squeezy-payment/`  
+**Description**: Implementation of Lemon Squeezy payment gateway with **completely offline license validation** (zero backend costs).
+
+**Documents**:
+- [📋 Complete Specification](features/2026-01-lemon-squeezy-payment/README.md) - Full technical specification (revised: offline-first)
+- [✅ Implementation Checklist](features/2026-01-lemon-squeezy-payment/implementation-checklist.md) - Step-by-step implementation guide
+- [⚡ Quick Reference](features/2026-01-lemon-squeezy-payment/QUICK_REFERENCE.md) - Executive summary
+
+**Key Features**:
+- Lemon Squeezy payment integration ($5 one-time purchase)
+- 14-day free trial with full functionality
+- **Completely offline license validation** (cryptographic signatures)
+- **Zero backend service** (no API, no servers, no ongoing costs)
+- **Works forever without internet** (no revalidation needed)
+- Unlimited device activations (user convenience over DRM)
+- Simple license key format (self-validating)
+- Cross-platform (Windows, macOS, Linux)
+
+**Timeline**: 2.5-3 weeks (26-36 hours, reduced from 46-62)  
+**Priority**: P0 - Critical for revenue generation  
+**Impact**: High - enables sustainable development with **$0/month costs**
+
+**Revision**: Updated 2026-01-07 to remove all backend dependencies per user feedback.
+
+---
+
 ### UX Improvements (January 2026)
 **Status**: ✅ Approved for Implementation  
 **Location**: `ux-improvements/`  
@@ -81,7 +109,7 @@ Complete index of all specifications in PDF Finder Pro.
 - [UX Improvements - Jan 2026](ux-improvements/) - ✅ Approved
 
 ### Features
-*No feature specs yet*
+- [Payment & License System - Jan 2026](features/2026-01-lemon-squeezy-payment/) - ✅ Approved
 
 ### Architecture
 *No architecture specs yet*
@@ -106,6 +134,7 @@ Complete index of all specifications in PDF Finder Pro.
 ## 📊 By Status
 
 ### ✅ Approved
+- [Payment & License System (Jan 2026)](features/2026-01-lemon-squeezy-payment/)
 - [UX Improvements (Jan 2026)](ux-improvements/)
 
 ### 🚧 In Progress
@@ -128,7 +157,7 @@ Complete index of all specifications in PDF Finder Pro.
 - [UX Improvements (Jan 2026)](ux-improvements/) - Comprehensive UX overhaul
 
 ### Feature Specifications
-*None yet*
+- [Payment & License System (Jan 2026)](features/2026-01-lemon-squeezy-payment/) - Lemon Squeezy integration
 
 ### Technical Design
 - [Indexing Optimizations (Jan 2026)](performance/2026-01-indexing-optimizations/) - Performance improvements
@@ -149,6 +178,11 @@ Complete index of all specifications in PDF Finder Pro.
   - Incremental indexing
   - SQLite optimizations
   - BM25 ranking
+- **January 7**: Payment & License System specification created
+  - Week 1: Lemon Squeezy setup & backend
+  - Week 2-3: License validation (Rust)
+  - Week 4: Frontend UI
+  - Week 5: Integration & testing
 - **January**: UX Improvements specification created
   - Week 1: Foundation & quick wins
   - Week 2: Core features (dark mode, search history)
@@ -169,15 +203,15 @@ Complete index of all specifications in PDF Finder Pro.
 ## 🎨 Quick Links
 
 ### Most Referenced Specs
-1. [UX Improvements Summary](ux-improvements/UX_IMPROVEMENTS_SUMMARY.md) - Quick overview
-2. [Performance Optimizations](performance/2026-01-indexing-optimizations/README.md) - Performance improvements
-3. [Quick Visual Examples](ux-improvements/QUICK_VISUAL_EXAMPLES.md) - Code samples
-4. [Implementation Roadmap](ux-improvements/IMPLEMENTATION_ROADMAP.md) - Sprint plan
+1. [Payment & License System](features/2026-01-lemon-squeezy-payment/README.md) - Revenue implementation
+2. [UX Improvements Summary](ux-improvements/UX_IMPROVEMENTS_SUMMARY.md) - Quick overview
+3. [Performance Optimizations](performance/2026-01-indexing-optimizations/README.md) - Performance improvements
+4. [Quick Visual Examples](ux-improvements/QUICK_VISUAL_EXAMPLES.md) - Code samples
 
 ### For Developers
+- [Payment Implementation Checklist](features/2026-01-lemon-squeezy-payment/implementation-checklist.md) - Step-by-step guide
 - [Quick Visual Examples](ux-improvements/QUICK_VISUAL_EXAMPLES.md) - Copy-paste code
 - [Performance Best Practices](performance/2026-01-indexing-optimizations/best-practices.md) - Optimization patterns
-- [Implementation Roadmap](ux-improvements/IMPLEMENTATION_ROADMAP.md) - Task breakdown
 
 ### For Product Managers
 - [UX Improvements Summary](ux-improvements/UX_IMPROVEMENTS_SUMMARY.md) - Priorities
@@ -220,13 +254,13 @@ See [README.md](README.md) for detailed instructions.
 
 ## 📊 Statistics
 
-- **Total Specs**: 2
-- **Active Projects**: 1
+- **Total Specs**: 3
+- **Active Projects**: 2
 - **Completed**: 1
-- **Categories**: 8 (2 in use)
-- **Total Documents**: 11
-- **Total Size**: ~120 KB
-- **Total Lines**: ~5,600
+- **Categories**: 8 (3 in use)
+- **Total Documents**: 13
+- **Total Size**: ~170 KB
+- **Total Lines**: ~7,100
 
 ---
 
@@ -236,10 +270,11 @@ See [README.md](README.md) for detailed instructions.
 - None scheduled yet
 
 ### Under Consideration
+- Auto-update system
 - Search History Feature spec
 - Folder Management Enhancement spec
 - PDF Preview Feature spec
-- Cloud Sync Integration spec
+- Volume licensing for teams
 - Mobile App spec
 
 ---
