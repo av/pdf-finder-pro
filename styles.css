@@ -795,6 +795,10 @@ body {
   color: var(--text-muted);
 }
 
+.empty-state.error-state {
+  color: var(--error-color);
+}
+
 .empty-state-icon {
   width: 72px;
   height: 72px;

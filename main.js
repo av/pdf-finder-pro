@@ -637,7 +637,7 @@ function showEmptyState(type = 'default') {
 
 function showError(message) {
   showToast(message, 'error');
-  resultsContainer.innerHTML = `<div class="empty-state" style="color: #ef4444;"><p><i data-lucide="x-circle" class="error-icon"></i> ${escapeHtml(message)}</p></div>`;
+  resultsContainer.innerHTML = `<div class="empty-state error-state"><p><i data-lucide="x-circle" class="error-icon"></i> ${escapeHtml(message)}</p></div>`;
   resultsCount.textContent = '';
   createIcons({ icons });
 }
