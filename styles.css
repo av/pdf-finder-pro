@@ -562,6 +562,15 @@ body {
   transform: scale(1.05);
 }
 
+.icon-btn:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.icon-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
 .icon-btn.refresh:hover {
   color: var(--secondary-color);
   background-color: rgba(14, 165, 233, 0.1);
@@ -623,6 +632,15 @@ body {
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.btn:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.btn:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .btn-primary {
@@ -706,6 +724,16 @@ body {
   background-color: var(--primary-light);
   box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
+}
+
+.result-item:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-color: var(--primary-color);
+}
+
+.result-item:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .result-title {
@@ -891,6 +919,15 @@ body {
   background-color: var(--surface-color);
   border-color: var(--border-color);
   box-shadow: var(--shadow-sm);
+}
+
+.folder-group-header:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.folder-group-header:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .folder-group-toggle {
