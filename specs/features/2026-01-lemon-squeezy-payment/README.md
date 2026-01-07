@@ -3,7 +3,7 @@
 ---
 **Metadata**
 - **Type**: feature
-- **Status**: approved
+- **Status**: implemented
 - **Created**: 2026-01-07
 - **Updated**: 2026-01-07
 - **Author**: @av

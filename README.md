@@ -2,6 +2,19 @@
 
 A cross-platform desktop application built with Tauri and Rust for fast, private full-text PDF search.
 
+## 💳 Pricing
+
+**$5 USD** - One-time payment, lifetime license
+- ✅ 14-day free trial with full features
+- ✅ Works on unlimited devices
+- ✅ All future updates included
+- ✅ Completely offline after activation
+- ✅ No subscription, no recurring fees
+
+**[Buy PDF Finder Pro →](https://lemonsqueezy.com/checkout/pdf-finder-pro)**
+
+*See [License Activation Guide](specs/features/2026-01-lemon-squeezy-payment/USER_GUIDE.md) for details*
+
 ## Recent Improvements (v0.2.0)
 
 🚀 **Major performance and quality improvements** have been implemented:
@@ -108,7 +121,11 @@ All data stays on your local machine. No data is sent to external servers.
 
 ## License
 
-MIT
+**Commercial Software** - $5 one-time purchase required after 14-day trial.
+
+For licensing details, see [License Activation Guide](specs/features/2026-01-lemon-squeezy-payment/USER_GUIDE.md).
+
+Code is available for review but not for redistribution without a license.
 
 ## Contributing
 
