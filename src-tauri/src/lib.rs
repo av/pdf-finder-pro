@@ -3,9 +3,13 @@
 
 mod database;
 mod indexer;
+mod license;
+mod validation;
 
 use database::{Database, SearchFilters, IndexedFolder};
 use indexer::PdfIndexer;
+use license::License;
+use validation::{LicenseStatus, validate_license};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Mutex;
@@ -219,6 +223,53 @@ fn transform_query(query: &str) -> String {
     }
 }
 
+// License Management Commands
+
+#[tauri::command]
+async fn get_license_status() -> Result<LicenseStatus, String> {
+    validate_license()
+        .map_err(|e| format!("Failed to validate license: {}", e))
+}
+
+#[tauri::command]
+async fn activate_license(key: String) -> Result<String, String> {
+    // Validate format
+    if !key.starts_with("PDFPRO-") {
+        return Err("Invalid license key format".to_string());
+    }
+    
+    // Verify signature (offline)
+    let is_valid = validation::verify_license_key_signature(&key)
+        .map_err(|e| format!("Validation error: {}", e))?;
+    
+    if !is_valid {
+        return Err("Invalid license key".to_string());
+    }
+    
+    // Create and save license
+    let license = License::new(key);
+    license.save()
+        .map_err(|e| format!("Failed to save license: {}", e))?;
+    
+    log::info!("License activated successfully");
+    Ok("License activated successfully!".to_string())
+}
+
+#[tauri::command]
+async fn get_trial_days_remaining() -> Result<i32, String> {
+    validation::get_trial_days_remaining()
+        .map_err(|e| format!("Failed to get trial days: {}", e))
+}
+
+#[tauri::command]
+async fn deactivate_license() -> Result<String, String> {
+    License::delete()
+        .map_err(|e| format!("Failed to deactivate license: {}", e))?;
+    
+    log::info!("License deactivated");
+    Ok("License deactivated successfully".to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // Initialize logging
@@ -240,7 +291,11 @@ pub fn run() {
             open_pdf, 
             get_index_stats,
             get_indexed_folders,
-            remove_indexed_folder
+            remove_indexed_folder,
+            get_license_status,
+            activate_license,
+            get_trial_days_remaining,
+            deactivate_license
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
