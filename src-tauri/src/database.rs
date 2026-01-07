@@ -281,16 +281,30 @@ impl Database {
         }
 
         if let Some(date_from) = &filters.date_from {
-            if let Ok(timestamp) = parse_date_to_timestamp(date_from) {
-                sql.push_str(" AND p.modified >= ?");
-                params_vec.push(Box::new(timestamp));
+            match parse_date_to_timestamp(date_from) {
+                Ok(timestamp) => {
+                    sql.push_str(" AND p.modified >= ?");
+                    params_vec.push(Box::new(timestamp));
+                }
+                Err(e) => {
+                    log::warn!("Invalid date_from format '{}': {}", date_from, e);
+                    // Return error instead of silently ignoring
+                    anyhow::bail!("Invalid 'from' date format. Please use YYYY-MM-DD format.");
+                }
             }
         }
 
         if let Some(date_to) = &filters.date_to {
-            if let Ok(timestamp) = parse_date_to_timestamp(date_to) {
-                sql.push_str(" AND p.modified <= ?");
-                params_vec.push(Box::new(timestamp + 86400)); // Add 1 day to include entire day
+            match parse_date_to_timestamp(date_to) {
+                Ok(timestamp) => {
+                    sql.push_str(" AND p.modified <= ?");
+                    params_vec.push(Box::new(timestamp + 86400)); // Add 1 day to include entire day
+                }
+                Err(e) => {
+                    log::warn!("Invalid date_to format '{}': {}", date_to, e);
+                    // Return error instead of silently ignoring
+                    anyhow::bail!("Invalid 'to' date format. Please use YYYY-MM-DD format.");
+                }
             }
         }
 
@@ -384,6 +398,17 @@ impl Database {
         let conn = self.conn.lock().unwrap();
         conn.execute("DELETE FROM pdfs WHERE folder_path = ?1", params![folder_path])?;
         Ok(())
+    }
+
+    /// Check if a PDF path exists in the database
+    pub fn is_pdf_indexed(&self, path: &str) -> anyhow::Result<bool> {
+        let conn = self.conn.lock().unwrap();
+        let count: i64 = conn.query_row(
+            "SELECT COUNT(*) FROM pdfs WHERE path = ?1",
+            params![path],
+            |row| row.get(0)
+        )?;
+        Ok(count > 0)
     }
 }
 
