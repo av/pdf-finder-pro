@@ -415,7 +415,9 @@ impl Database {
 fn parse_date_to_timestamp(date_str: &str) -> anyhow::Result<i64> {
     use chrono::NaiveDate;
     let date = NaiveDate::parse_from_str(date_str, "%Y-%m-%d")?;
-    Ok(date.and_hms_opt(0, 0, 0).unwrap().and_utc().timestamp())
+    let datetime = date.and_hms_opt(0, 0, 0)
+        .ok_or_else(|| anyhow::anyhow!("Invalid time components for date: {}", date_str))?;
+    Ok(datetime.and_utc().timestamp())
 }
 
 /// Optimize search query for better FTS5 performance
