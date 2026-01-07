@@ -64,6 +64,7 @@ pdf-finder-pro/
 ├── README.md               # User documentation
 ├── IMPLEMENTATION.md       # Implementation details
 ├── AGENTS.md              # This file
+├── specs/                  # Specification system (see below)
 └── src-tauri/              # Rust backend
     ├── Cargo.toml          # Rust dependencies
     ├── build.rs            # Build script
@@ -75,6 +76,26 @@ pdf-finder-pro/
         ├── database.rs     # SQLite FTS5 layer (277 lines)
         └── indexer.rs      # PDF indexing (118 lines)
 ```
+
+### Specification System Structure
+```
+specs/
+├── README.md                    # Spec system overview and guidelines
+├── INDEX.md                     # Complete index of all specifications
+├── TEMPLATE.md                  # Template for new specs
+├── ux-improvements/             # UX improvement specifications
+│   └── [dated project folders]
+├── features/                    # Feature specifications
+├── architecture/                # Architecture decision records
+├── api/                         # API specifications
+├── security/                    # Security specifications
+├── performance/                 # Performance optimization specs
+│   └── 2026-01-indexing-optimizations/  # Example: completed perf work
+├── testing/                     # Test plans and strategies
+└── deployment/                  # Deployment and infrastructure specs
+```
+
+**Important**: All design documents, specifications, and implementation details MUST be organized within the `specs/` directory following the structure above. Never leave stray .md files in the root directory.
 
 ### Data Flow
 1. **Folder Selection**: User selects folder via native dialog (Tauri plugin-dialog)
@@ -248,6 +269,94 @@ npm run build
 
 ---
 
+## Documentation Workflow
+
+### Specification System Rules
+
+**MANDATORY**: All design documents, specifications, and technical documentation MUST be integrated into the `specs/` directory. Never leave stray markdown files in the root directory after completing work.
+
+### When Creating New Documentation
+
+1. **Determine Category**: Choose appropriate category (ux-improvements, features, architecture, api, security, performance, testing, deployment)
+
+2. **Create Project Folder**: Use format `YYYY-MM-project-name` within category
+   ```bash
+   mkdir -p specs/performance/2026-01-my-optimization
+   ```
+
+3. **Use Template**: Copy and adapt the template
+   ```bash
+   cp specs/TEMPLATE.md specs/performance/2026-01-my-optimization/README.md
+   ```
+
+4. **Fill In Content**:
+   - Complete all template sections
+   - Include metadata (type, status, dates, author)
+   - Add code examples and benchmarks
+   - Reference related specs
+   - Document rationale and alternatives
+
+5. **Update INDEX.md**: Add entry to `specs/INDEX.md` in appropriate sections:
+   - By Category
+   - By Status
+   - Timeline View
+   - Statistics
+
+6. **Clean Up**: Delete any temporary/working markdown files from root directory
+
+### When Completing Implementation
+
+After implementing changes:
+
+1. **Update Spec Status**: Change status from "approved" to "implemented"
+2. **Document Results**: Add actual performance metrics, lessons learned
+3. **Update Change Log**: Record completion date and outcomes
+4. **Move to Completed**: Update INDEX.md to reflect implementation status
+5. **Delete Root-Level Docs**: Remove any temporary documentation files created during work
+
+### Prohibited Actions
+
+❌ **NEVER** leave these types of files in root directory:
+- Implementation notes (*.md)
+- Performance summaries (*.md)
+- Technical deep dives (*.md)
+- Before/after comparisons (*.md)
+- Checklists (*.md)
+- Rationale documents (*.md)
+
+✅ **ALWAYS** integrate these into appropriate spec folders.
+
+### Documentation File Naming
+
+Within spec folders:
+- `README.md` - Main specification overview
+- `technical-details.md` - Deep technical implementation details
+- `implementation-rationale.md` - Why decisions were made
+- `before-after-comparison.md` - Code/performance comparisons
+- `best-practices.md` - Learning and patterns
+- `checklist.md` - Implementation verification
+
+### Quick Reference
+
+**Good**:
+```
+specs/performance/2026-01-indexing-optimizations/
+├── README.md
+├── technical-details.md
+├── implementation-rationale.md
+└── checklist.md
+```
+
+**Bad**:
+```
+PERFORMANCE_IMPROVEMENTS.md
+OPTIMIZATION_SUMMARY.md
+BEFORE_AFTER_COMPARISON.md
+IMPLEMENTATION_NOTES.md
+```
+
+---
+
 ## Testing
 
 **Current State**: No test infrastructure exists.
@@ -357,6 +466,15 @@ When modifying this codebase:
 6. **Cross-Platform**: Test on multiple platforms if changing native integrations.
 
 7. **Error Handling**: Never let errors crash the app. Log and continue gracefully.
+
+8. **Documentation Management**: 
+   - **NEVER leave stray .md files in the root directory after completing work**
+   - All documentation MUST be integrated into the specification system (./specs/)
+   - Follow the spec system structure: `specs/{category}/YYYY-MM-project-name/`
+   - Update `specs/INDEX.md` when adding new specifications
+   - Use the template in `specs/TEMPLATE.md` for new specs
+   - Delete temporary/working markdown files before committing
+   - Implementation details belong in specs, not root-level markdown files
 
 ---
 

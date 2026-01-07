@@ -10,7 +10,7 @@ A cross-platform desktop application built with Tauri and Rust for fast, private
 - **Enhanced reliability** with comprehensive error handling
 - **Improved search quality** with diacritics normalization
 
-See [IMPROVEMENTS_SUMMARY.md](IMPROVEMENTS_SUMMARY.md) for full details.
+See [specs/performance/2026-01-indexing-optimizations/](specs/performance/2026-01-indexing-optimizations/) for complete technical details.
 
 ## Features
 
