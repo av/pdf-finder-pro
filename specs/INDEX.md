@@ -2,7 +2,7 @@
 
 Complete index of all specifications in PDF Finder Pro.
 
-**Last Updated**: 2026-01-05
+**Last Updated**: 2026-01-07
 
 ---
 
@@ -124,6 +124,8 @@ Complete index of all specifications in PDF Finder Pro.
 
 ### Testing
 - [Exploratory Testing Fixes - Jan 2026](testing/2026-01-exploratory-testing-fixes/) - ✅ Completed
+- [Exploratory Testing Round 2 - Jan 2026](testing/2026-01-exploratory-testing-round2/) - ✅ Completed
+- [Exploratory Testing Round 3 - Jan 2026](testing/2026-01-exploratory-testing-round3/) - ✅ Completed
 
 ### Deployment
 *No deployment specs yet*
@@ -144,6 +146,8 @@ Complete index of all specifications in PDF Finder Pro.
 ### ✔️ Implemented
 - [Performance: Indexing Optimizations (Jan 2026)](performance/2026-01-indexing-optimizations/)
 - [Testing: Exploratory Testing Fixes (Jan 2026)](testing/2026-01-exploratory-testing-fixes/)
+- [Testing: Exploratory Testing Round 2 (Jan 2026)](testing/2026-01-exploratory-testing-round2/)
+- [Testing: Exploratory Testing Round 3 (Jan 2026)](testing/2026-01-exploratory-testing-round3/)
 
 ### 🗄️ Archived
 *None yet*
@@ -167,6 +171,8 @@ Complete index of all specifications in PDF Finder Pro.
 
 ### Security & Testing
 - [Exploratory Testing Fixes (Jan 2026)](testing/2026-01-exploratory-testing-fixes/) - Security fixes and testing
+- [Exploratory Testing Round 2 (Jan 2026)](testing/2026-01-exploratory-testing-round2/) - npm vulnerability fixes
+- [Exploratory Testing Round 3 (Jan 2026)](testing/2026-01-exploratory-testing-round3/) - Accessibility and code quality
 
 ---
 
@@ -183,6 +189,15 @@ Complete index of all specifications in PDF Finder Pro.
   - Code quality improvements
   - Documentation organization
   - Input validation enhancements
+- **January 7**: Exploratory Testing Round 2 completed
+  - npm vulnerability fixes (Vite upgrade)
+  - Chrono API deprecation fix
+  - UX improvements (search result limits, date validation)
+- **January 7**: Exploratory Testing Round 3 completed
+  - Accessibility improvements (ARIA labels, keyboard navigation)
+  - Focus indicator enhancements
+  - Input validation fixes (parseInt radix)
+  - Code quality improvements (SQL consistency, CSS organization)
 - **January**: UX Improvements specification created
   - Week 1: Foundation & quick wins
   - Week 2: Core features (dark mode, search history)
