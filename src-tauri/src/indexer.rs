@@ -169,13 +169,25 @@ impl PdfIndexer {
     /// Collect all PDF files in the folder recursively
     fn collect_pdf_files(&self, folder_path: &str) -> Result<Vec<PathBuf>> {
         let mut pdf_files = Vec::new();
+        let root_path = std::path::PathBuf::from(folder_path);
+        let canonical_root = root_path.canonicalize()
+            .context("Failed to canonicalize root path")?;
 
         for entry in WalkDir::new(folder_path)
-            .follow_links(true)
+            .follow_links(false)  // Don't follow symlinks to prevent traversal attacks
             .into_iter()
             .filter_map(|e| e.ok())
         {
             let path = entry.path();
+            
+            // Ensure the path is still within the root folder (defense in depth)
+            if let Ok(canonical_path) = path.canonicalize() {
+                if !canonical_path.starts_with(&canonical_root) {
+                    log::warn!("Skipping path outside root: {}", path.display());
+                    continue;
+                }
+            }
+            
             if path.is_file() && is_pdf_file(path) {
                 pdf_files.push(path.to_path_buf());
             }
@@ -387,7 +399,9 @@ fn estimate_page_count(text: &str) -> i32 {
     // Strategy 1: Count form feeds which often indicate page breaks
     let form_feeds = text.chars().filter(|&c| c == '\x0C').count();
     if form_feeds > 0 {
-        return (form_feeds + 1) as i32;
+        // Protect against overflow by capping at i32::MAX
+        let pages = form_feeds.saturating_add(1);
+        return pages.min(i32::MAX as usize) as i32;
     }
     
     // Strategy 2: Look for common page break patterns
@@ -396,9 +410,10 @@ fn estimate_page_count(text: &str) -> i32 {
     if newline_sequences > 5 {
         // Multiple triple-newlines often indicate page breaks
         // This is a heuristic and may not be accurate for all PDFs
-        let estimated = (newline_sequences as f64 * 0.8) as i32 + 1;
-        if estimated > 1 {
-            return estimated;
+        let estimated = (newline_sequences as f64 * 0.8) as usize + 1;
+        let capped = estimated.min(i32::MAX as usize);
+        if capped > 1 {
+            return capped as i32;
         }
     }
     
@@ -407,7 +422,8 @@ fn estimate_page_count(text: &str) -> i32 {
     // Use 3000 as a middle ground with better rounding
     let chars = text.len();
     let pages = ((chars as f64 / 3000.0).ceil() as usize).max(1);
-    pages as i32
+    // Cap at reasonable maximum to prevent overflow
+    pages.min(i32::MAX as usize) as i32
 }
 
 #[cfg(test)]

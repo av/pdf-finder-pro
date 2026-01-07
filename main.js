@@ -162,7 +162,7 @@ async function indexFolder(folderPath) {
     showToast(`Indexed ${result.count} PDFs in ${result.duration}ms`, 'success');
   } catch (error) {
     console.error('Error indexing PDFs:', error);
-    showToast(`Indexing failed: ${error}`, 'error');
+    showToast('Indexing failed. Please check the folder and try again.', 'error');
   }
 }
 
@@ -176,61 +176,73 @@ async function loadIndexedFolders() {
       return;
     }
 
-    foldersList.innerHTML = folders.map(folder => {
+    foldersList.innerHTML = '';
+    
+    folders.forEach(folder => {
       const folderName = folder.path.split(/[\\/]/).pop() || folder.path;
-      return `
-        <div class="folder-item" data-path="${escapeHtml(folder.path)}" title="${escapeHtml(folder.path)}">
-          <div class="folder-info">
-            <div class="folder-path-text">${escapeHtml(folderName)}</div>
-            <div class="folder-meta">
-              <span><i data-lucide="file-text" class="meta-icon"></i> ${folder.pdf_count} PDFs</span>
-              <span><i data-lucide="clock" class="meta-icon"></i> ${formatTimestamp(folder.last_indexed)}</span>
-            </div>
-          </div>
-          <div class="folder-actions">
-            <button class="icon-btn refresh" onclick="window.__reindexFolder('${escapePath(folder.path)}')" title="Re-index">
-              <i data-lucide="refresh-cw"></i>
-            </button>
-            <button class="icon-btn delete" onclick="window.__removeFolder('${escapePath(folder.path)}')" title="Remove">
-              <i data-lucide="trash-2"></i>
-            </button>
+      
+      const folderItem = document.createElement('div');
+      folderItem.className = 'folder-item';
+      folderItem.setAttribute('data-path', folder.path);
+      folderItem.title = folder.path;
+      
+      folderItem.innerHTML = `
+        <div class="folder-info">
+          <div class="folder-path-text">${escapeHtml(folderName)}</div>
+          <div class="folder-meta">
+            <span><i data-lucide="file-text" class="meta-icon"></i> ${folder.pdf_count} PDFs</span>
+            <span><i data-lucide="clock" class="meta-icon"></i> ${formatTimestamp(folder.last_indexed)}</span>
           </div>
         </div>
+        <div class="folder-actions">
+          <button class="icon-btn refresh" title="Re-index">
+            <i data-lucide="refresh-cw"></i>
+          </button>
+          <button class="icon-btn delete" title="Remove">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </div>
       `;
-    }).join('');
+      
+      // Add event listeners instead of inline onclick
+      const refreshBtn = folderItem.querySelector('.refresh');
+      const deleteBtn = folderItem.querySelector('.delete');
+      
+      refreshBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (confirm(`Re-index folder: ${folder.path}?`)) {
+          await indexFolder(folder.path);
+          await loadIndexedFolders();
+        }
+      });
+      
+      deleteBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (confirm(`Remove folder and all its indexed PDFs: ${folder.path}?`)) {
+          try {
+            await invoke('remove_indexed_folder', { folderPath: folder.path });
+            showToast('Folder removed successfully', 'success');
+            await loadIndexedFolders();
+            
+            if (currentResults.length > 0) {
+              performSearch();
+            }
+          } catch (error) {
+            console.error('Error removing folder:', error);
+            showToast('Failed to remove folder. Please try again.', 'error');
+          }
+        }
+      });
+      
+      foldersList.appendChild(folderItem);
+    });
+    
     createIcons({ icons });
   } catch (error) {
     console.error('Error loading folders:', error);
     foldersList.innerHTML = '<div class="empty-state-small"><p>Error loading</p></div>';
   }
 }
-
-// Re-index a folder
-window.__reindexFolder = async (path) => {
-  if (!confirm(`Re-index folder: ${path}?`)) return;
-  
-  await indexFolder(path);
-  await loadIndexedFolders();
-};
-
-// Remove a folder
-window.__removeFolder = async (path) => {
-  if (!confirm(`Remove folder and all its indexed PDFs: ${path}?`)) return;
-  
-  try {
-    await invoke('remove_indexed_folder', { folderPath: path });
-    showToast('Folder removed successfully', 'success');
-    await loadIndexedFolders();
-    
-    // Clear results if they were from this folder
-    if (currentResults.length > 0) {
-      performSearch();
-    }
-  } catch (error) {
-    console.error('Error removing folder:', error);
-    showToast(`Failed to remove folder: ${error}`, 'error');
-  }
-};
 
 // Search functionality
 async function performSearch() {
@@ -244,9 +256,27 @@ async function performSearch() {
   showSkeletonLoader();
 
   try {
+    // Validate and sanitize filter inputs
+    const minSizeValue = minSizeInput.value ? parseInt(minSizeInput.value) : null;
+    const maxSizeValue = maxSizeInput.value ? parseInt(maxSizeInput.value) : null;
+    
+    // Validate filter values
+    if (minSizeValue !== null && (isNaN(minSizeValue) || minSizeValue < 0)) {
+      showError('Minimum size must be a positive number');
+      return;
+    }
+    if (maxSizeValue !== null && (isNaN(maxSizeValue) || maxSizeValue < 0)) {
+      showError('Maximum size must be a positive number');
+      return;
+    }
+    if (minSizeValue !== null && maxSizeValue !== null && minSizeValue > maxSizeValue) {
+      showError('Minimum size cannot be greater than maximum size');
+      return;
+    }
+    
     const filters = {
-      min_size: minSizeInput.value ? parseInt(minSizeInput.value) * 1024 : null,
-      max_size: maxSizeInput.value ? parseInt(maxSizeInput.value) * 1024 : null,
+      min_size: minSizeValue ? minSizeValue * 1024 : null,
+      max_size: maxSizeValue ? maxSizeValue * 1024 : null,
       date_from: dateFromInput.value || null,
       date_to: dateToInput.value || null,
     };
@@ -256,7 +286,8 @@ async function performSearch() {
     displayResults(results);
   } catch (error) {
     console.error('Error searching:', error);
-    showError(`Search failed: ${error}`);
+    // Show user-friendly error message without exposing internals
+    showError('Search failed. Please try different search terms or filters.');
     currentResults = [];
   }
 }
@@ -273,6 +304,31 @@ searchInput.addEventListener('keypress', (e) => {
 searchInput.addEventListener('input', () => {
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => performSearch(), 300);
+});
+
+// Auto-search when filters change
+minSizeInput.addEventListener('change', () => {
+  if (searchInput.value.trim()) {
+    performSearch();
+  }
+});
+
+maxSizeInput.addEventListener('change', () => {
+  if (searchInput.value.trim()) {
+    performSearch();
+  }
+});
+
+dateFromInput.addEventListener('change', () => {
+  if (searchInput.value.trim()) {
+    performSearch();
+  }
+});
+
+dateToInput.addEventListener('change', () => {
+  if (searchInput.value.trim()) {
+    performSearch();
+  }
 });
 
 // Sort results
@@ -325,21 +381,62 @@ function displayResults(results) {
   // Group results by folder
   const groupedResults = groupByFolder(sortedResults);
   
-  resultsContainer.innerHTML = Object.entries(groupedResults).map(([folder, items]) => {
-    const folderId = btoa(folder).replace(/[^a-zA-Z0-9]/g, '');
-    return `
-      <div class="folder-group">
-        <div class="folder-group-header" onclick="window.__toggleFolderGroup('${folderId}')">
-          <i data-lucide="chevron-down" class="folder-group-toggle" id="toggle-${folderId}"></i>
-          <span class="folder-group-title"><i data-lucide="folder" class="inline-icon"></i> ${escapeHtml(getFolderName(folder))}</span>
-          <span class="folder-group-count">${items.length} result${items.length !== 1 ? 's' : ''}</span>
-        </div>
-        <div class="folder-group-results" id="results-${folderId}">
-          ${items.map(result => renderResultItem(result)).join('')}
-        </div>
-      </div>
+  resultsContainer.innerHTML = '';
+  
+  Object.entries(groupedResults).forEach(([folder, items]) => {
+    // Use a hash of the folder path for IDs to avoid collisions
+    const folderId = 'folder-' + hashString(folder);
+    
+    const folderGroup = document.createElement('div');
+    folderGroup.className = 'folder-group';
+    
+    const header = document.createElement('div');
+    header.className = 'folder-group-header';
+    header.innerHTML = `
+      <i data-lucide="chevron-down" class="folder-group-toggle" id="toggle-${folderId}"></i>
+      <span class="folder-group-title"><i data-lucide="folder" class="inline-icon"></i> ${escapeHtml(getFolderName(folder))}</span>
+      <span class="folder-group-count">${items.length} result${items.length !== 1 ? 's' : ''}</span>
     `;
-  }).join('');
+    
+    const resultsDiv = document.createElement('div');
+    resultsDiv.className = 'folder-group-results';
+    resultsDiv.id = `results-${folderId}`;
+    resultsDiv.innerHTML = items.map(result => renderResultItem(result)).join('');
+    
+    // Add click handler for toggling
+    header.addEventListener('click', () => {
+      const toggleIcon = document.getElementById(`toggle-${folderId}`);
+      
+      if (resultsDiv.classList.contains('collapsed')) {
+        resultsDiv.classList.remove('collapsed');
+        if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-down');
+      } else {
+        resultsDiv.classList.add('collapsed');
+        if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-right');
+      }
+      createIcons({ icons });
+    });
+    
+    folderGroup.appendChild(header);
+    folderGroup.appendChild(resultsDiv);
+    resultsContainer.appendChild(folderGroup);
+  });
+  
+  // Add click handlers for result items
+  resultsContainer.querySelectorAll('.result-item').forEach(item => {
+    const path = item.getAttribute('data-path');
+    if (path) {
+      item.addEventListener('click', async () => {
+        try {
+          await invoke('open_pdf', { path });
+        } catch (error) {
+          console.error('Error opening PDF:', error);
+          showError('Failed to open PDF. The file may have been moved or deleted.');
+        }
+      });
+    }
+  });
+  
   createIcons({ icons });
 }
 
@@ -399,7 +496,7 @@ window.__toggleFolderGroup = (folderId) => {
 // Render a single result item
 function renderResultItem(result) {
   return `
-    <div class="result-item" onclick="window.__openPdf('${escapePath(result.path)}')">
+    <div class="result-item" data-path="${escapeHtml(result.path)}">
       <div class="result-title">${escapeHtml(result.title || getFileName(result.path))}</div>
       <div class="result-path">${escapeHtml(result.path)}</div>
       <div class="result-metadata">
@@ -410,6 +507,17 @@ function renderResultItem(result) {
       ${result.snippet ? `<div class="result-snippet">${highlightSnippet(result.snippet, searchInput.value)}</div>` : ''}
     </div>
   `;
+}
+
+// Simple hash function for generating stable IDs from folder paths
+function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(36);
 }
 
 // Open PDF file
@@ -538,10 +646,6 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-function escapePath(path) {
-  return path.replace(/'/g, "\\'");
-}
-
 function getFileName(path) {
   return path.split(/[\\/]/).pop();
 }
@@ -574,20 +678,18 @@ function formatTimestamp(timestamp) {
 }
 
 function highlightSnippet(snippet, query) {
-  if (!query) return escapeHtml(snippet);
+  if (!query || !snippet) return escapeHtml(snippet || '');
 
-  // Extract search terms (simple parsing, ignoring operators for highlighting)
-  const terms = query.split(/\s+/).filter(t =>
-    !['AND', 'OR', 'NOT'].includes(t.toUpperCase())
-  );
-
-  let highlighted = escapeHtml(snippet);
-  terms.forEach(term => {
-    const regex = new RegExp(`(${term})`, 'gi');
-    highlighted = highlighted.replace(regex, '<span class="highlight">$1</span>');
-  });
-
-  return highlighted;
+  // Snippet from database already contains <mark> tags for highlighting
+  // Just sanitize any remaining content while preserving the mark tags
+  // Replace <mark> temporarily, escape everything, then restore marks
+  const marked = snippet.replace(/<mark>/g, '___MARK_START___')
+                        .replace(/<\/mark>/g, '___MARK_END___');
+  
+  const escaped = escapeHtml(marked);
+  
+  return escaped.replace(/___MARK_START___/g, '<mark>')
+                .replace(/___MARK_END___/g, '</mark>');
 }
 
 // Initialize
